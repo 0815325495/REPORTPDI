@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDI Inspection Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Kanit', sans-serif; }
+        .card-transition {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card-transition:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        /* Active Tab Style */
+        .tab-active {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+        }
+        .tab-inactive {
+            color: #4b5563; /* gray-600 */
+        }
+        .tab-inactive:hover {
+            color: #2563eb;
+        }
+        /* Custom Scrollbar for Table */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .custom-table-input {
+            min-width: 50px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        /* Stacked inputs in table cells */
+        .input-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        th {
+            white-space: nowrap;
+        }
+        /* Style for summary rows at the top */
+        .summary-row {
+            background-color: #f9fafb; /* gray-50 */
+            font-weight: 600;
+        }
+        .summary-row td {
+            border-bottom: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="text-center mb-8 pt-6">
+            <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">2PS REPORT</h1>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap justify-center mb-8 gap-2">
+            <div class="bg-white rounded-lg shadow-lg p-1 flex flex-wrap justify-center">
+                <button id="tab-2ps-report" onclick="switchTab('2ps', 'report')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-active">
+                    REPORT 2PS
+                </button>
+                <button id="tab-2ps-edit" onclick="switchTab('2ps', 'edit')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
+                    EDIT DATA 2PS
+                </button>
+                <div class="w-px bg-gray-300 mx-1"></div>
+                <button id="tab-28rai-report" onclick="switchTab('28rai', 'report')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
+                    REPORT 28 ไร่
+                </button>
+                <button id="tab-28rai-edit" onclick="switchTab('28rai', 'edit')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
+                    EDIT DATA 28 ไร่
+                </button>
+            </div>
+        </div>
+
+        <!-- Report Tab Content -->
+        <div id="reportContent" class="space-y-8">
+            <!-- Date Filter for Report -->
+            <div class="bg-white rounded-xl shadow-lg p-4 card-transition">
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                    <label for="reportDate" class="text-lg font-medium text-gray-700">แสดงรายงานสำหรับวันที่:</label>
+                    <input type="date" id="reportDate" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg w-full sm:w-auto">
+                </div>
+            </div>
+
+            <!-- Top 4 Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Monthly Target Card -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 card-transition">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">เป้าหมายรายเดือน</h3>
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl font-bold text-blue-600" id="monthlyTarget">4,000</span>
+                        <button onclick="editTarget()" class="text-blue-500 hover:text-blue-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <p class="text-sm text-gray-500">คัน</p>
+                        <p class="text-sm font-medium text-gray-500" id="monthlyTargetPercent"></p>
+                    </div>
+                </div>
+
+                <!-- Cars OK Card -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 card-transition">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">รถ OK</h3>
+                    <span class="text-3xl font-bold text-green-600" id="carsOK">0</span>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <p class="text-sm text-gray-500">คัน</p>
+                        <p class="text-sm font-medium text-green-600" id="carsOkPercent"></p>
+                    </div>
+                </div>
+
+                <!-- Remaining Card -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 card-transition">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">ขาดอีก</h3>
+                    <span class="text-3xl font-bold text-orange-600" id="remaining">0</span>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <p class="text-sm text-gray-500">คัน</p>
+                        <p class="text-sm font-medium text-orange-600" id="remainingPercent"></p>
+                    </div>
+                </div>
+
+                <!-- Total PDI Card -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 card-transition">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">ยอด PDI ทั้งหมด</h3>
+                    <span class="text-3xl font-bold text-purple-600" id="totalPDI">0</span>
+                     <div class="flex items-baseline justify-between mt-1">
+                        <p class="text-sm text-gray-500">คัน</p>
+                        <p class="text-sm font-medium text-purple-600" id="totalPdiPercent"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Performance Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-transition">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">ยอดรายวันที่ทำได้ และเฉลี่ย/วัน</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-2" id="todayCountLabel">ยอด OK วันที่เลือก</p>
+                        <p class="text-4xl font-bold text-blue-600" id="todayCount">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-2">ยอด OK เดือนนี้</p>
+                        <p class="text-4xl font-bold text-purple-600" id="monthlyCount">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-2">เฉลี่ย OK/วัน</p>
+                        <p class="text-4xl font-bold text-green-600" id="dailyAverage">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                </div>
+                <!-- Chart Container -->
+                <div class="relative h-80 bg-gray-50 rounded-lg p-4">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+             <!-- Daily Summary Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 id="reportSummaryTitle" class="text-xl font-semibold text-gray-800 mb-4 text-center">สรุปยอดสำหรับวันที่เลือก</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- PDI Summary -->
+                    <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">รถเข้าตรวจ PDI</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="reportPdiTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="reportPdiOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="reportPdiNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                        <div id="reportPdiModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- PDI model details will be injected here -->
+                        </div>
+                    </div>
+                    <!-- REPAIR Summary -->
+                    <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">รถ REPAIR</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="reportRepairTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="reportRepairOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="reportRepairNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                         <div id="reportRepairModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- REPAIR model details will be injected here -->
+                        </div>
+                    </div>
+                     <!-- TOTAL Summary -->
+                    <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">TOTAL</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="reportGrandTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="reportTotalOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="reportTotalNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                        <div id="reportTotalModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- TOTAL model details will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inspection Percentage Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-transition">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">% การตรวจ OK/NG (สรุปทั้งเดือน)</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- PDI Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-700 text-center">PDI</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                                <p class="text-sm text-gray-600 mb-2">OK</p>
+                                <p class="text-3xl font-bold text-green-600" id="pdiOkCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-green-700" id="pdiOkPercent">0%</p>
+                            </div>
+                            <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                                <p class="text-sm text-gray-600 mb-2">NG</p>
+                                <p class="text-3xl font-bold text-red-600" id="pdiNgCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-red-700" id="pdiNgPercent">0%</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 mb-4">
+                            รวม PDI: <span class="font-medium" id="pdiTotal">0 คัน</span>
+                        </div>
+                    </div>
+
+                    <!-- REPAIR Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-700 text-center">REPAIR</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                                <p class="text-sm text-gray-600 mb-2">OK</p>
+                                <p class="text-3xl font-bold text-green-600" id="repairOkCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-green-700" id="repairOkPercent">0%</p>
+                            </div>
+                            <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                                <p class="text-sm text-gray-600 mb-2">NG</p>
+                                <p class="text-3xl font-bold text-red-600" id="repairNgCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-red-700" id="repairNgPercent">0%</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 mb-4">
+                            รวม REPAIR: <span class="font-medium" id="repairTotal">0 คัน</span>
+                        </div>
+                    </div>
+
+                     <!-- TOTAL Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-700 text-center">TOTAL</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                                <p class="text-sm text-gray-600 mb-2">OK</p>
+                                <p class="text-3xl font-bold text-green-600" id="totalOkCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-green-700" id="totalOkPercent">0%</p>
+                            </div>
+                            <div class="text-center p-4 bg-red-100 rounded-lg border-2 border-red-300">
+                                <p class="text-sm text-gray-600 mb-2">NG</p>
+                                <p class="text-3xl font-bold text-red-600" id="totalNgCount">0</p>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">คัน</p>
+                                <p class="text-xl font-medium text-red-700" id="totalNgPercent">0%</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-sm text-gray-600 mb-4">
+                            รวมทั้งหมด: <span class="font-medium" id="grandTotal">0 คัน</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Monthly Model Breakdown Bar Charts -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-transition">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">รายละเอียดรุ่นรถ OK & NG (สะสมรายเดือน)</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- OK Chart Card -->
+                    <div class="space-y-2">
+                        <h4 class="text-lg font-medium text-gray-700 text-center text-green-600">รายละเอียดรุ่นรถ OK</h4>
+                        <div id="okChartSummary" class="text-center mb-2 text-sm text-gray-600 border-b pb-2">
+                            <!-- Summary will be injected here by JS -->
+                        </div>
+                        <div class="relative h-[500px] bg-gray-50 rounded-lg p-2">
+                            <canvas id="monthlyModelOkBarChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- NG Chart Card -->
+                     <div class="space-y-2">
+                        <h4 class="text-lg font-medium text-gray-700 text-center text-red-600">รายละเอียดรุ่นรถ NG</h4>
+                         <div id="ngChartSummary" class="text-center mb-2 text-sm text-gray-600 border-b pb-2">
+                            <!-- Summary will be injected here by JS -->
+                        </div>
+                        <div class="relative h-[500px] bg-gray-50 rounded-lg p-2">
+                            <canvas id="monthlyModelNgBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Month Summary -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-transition">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">สรุป 3 เดือนย้อนหลัง</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <p id="lastMonthLabel" class="text-sm text-gray-600 mb-1">เดือนที่แล้ว</p>
+                        <p id="lastMonthCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <p id="twoMonthsAgoLabel" class="text-sm text-gray-600 mb-1">2 เดือนที่แล้ว</p>
+                        <p id="twoMonthsAgoCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <p id="threeMonthsAgoLabel" class="text-sm text-gray-600 mb-1">3 เดือนที่แล้ว</p>
+                        <p id="threeMonthsAgoCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-500">คัน</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Report -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-transition">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">หมายเหตุประจำวัน (สำหรับวันที่เลือก)</h3>
+                <div class="space-y-4">
+                    <div>
+                        <textarea id="dailyNotes" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="กรอกหมายเหตุประจำวัน..."></textarea>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="saveDailyReport()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                            <span>บันทึกหมายเหตุ</span>
+                        </button>
+                        <button onclick="sendToLine()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.628-.629.628M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                            </svg>
+                            <span>ส่ง LINE</span>
+                        </button>
+                        <button onclick="summarizeMonthlyNotes()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                           <span>สรุปหมายเหตุประจำเดือน</span>
+                       </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Data Tab Content -->
+        <div id="editContent" class="hidden space-y-8">
+            <!-- Date Filter Section -->
+            <div class="bg-white rounded-xl shadow-lg p-4">
+                <div class="flex justify-center items-center space-x-2">
+                    <label class="text-lg font-medium text-gray-700">วันที่:</label>
+                    <input type="date" id="selectedDate" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg w-full sm:w-auto">
+                </div>
+            </div>
+
+            <!-- Summary Card for Edit Tab -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 id="editSummaryTitle" class="text-xl font-semibold text-gray-800 mb-4 text-center">สรุปยอดสำหรับวันที่เลือก</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- PDI Summary -->
+                    <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">รถเข้าตรวจ PDI</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="editPdiTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="editPdiOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="editPdiNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                        <div id="editPdiModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- PDI model details will be injected here -->
+                        </div>
+                    </div>
+                    <!-- REPAIR Summary -->
+                    <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">รถ REPAIR</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="editRepairTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="editRepairOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="editRepairNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                         <div id="editRepairModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- REPAIR model details will be injected here -->
+                        </div>
+                    </div>
+                    <!-- TOTAL Summary -->
+                    <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400">
+                        <h4 class="font-semibold text-gray-700 mb-3 text-center">TOTAL</h4>
+                        <div class="flex justify-around text-center">
+                            <div>
+                                <p class="text-sm text-gray-500">ยอดรวม</p>
+                                <p id="editGrandTotal" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">OK</p>
+                                <p id="editTotalOk" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">NG</p>
+                                <p id="editTotalNg" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                        <div id="editTotalModelDetails" class="mt-4 space-y-1 text-xs border-t pt-2">
+                            <!-- TOTAL model details will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combined PDI & Repair Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">ข้อมูลการตรวจรถ (PDI & REPAIR)</h3>
+                    <div class="space-x-2">
+                        <button onclick="addNewCarModel('pdi')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                            + เพิ่มรุ่นรถ PDI
+                        </button>
+                         <button onclick="addNewCarModel('repair')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                            + เพิ่มรุ่นรถ REPAIR
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Summary Cards for Edit Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center">
+                        <h4 class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-1">Total Target</h4>
+                        <p id="card-total-target" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 text-center">
+                        <h4 class="text-sm font-bold text-green-600 uppercase tracking-wider mb-1">Total Actual</h4>
+                        <p id="card-total-actual" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center">
+                        <h4 class="text-sm font-bold text-orange-600 uppercase tracking-wider mb-1">Remaining</h4>
+                        <p id="card-remaining" class="text-3xl font-bold text-orange-600">0</p>
+                    </div>
+                </div>
+
+                <!-- Table Wrapper for Combined Data -->
+                <div class="overflow-x-auto scrollbar-hide">
+                    <table class="min-w-full text-left text-sm text-gray-600" id="pdiTable">
+                        <thead class="bg-gray-100 text-gray-700 uppercase">
+                            <tr>
+                                <th class="px-4 py-3 rounded-tl-lg">Model</th>
+                                <th class="px-2 py-3 text-center min-w-[80px] bg-purple-100">P1<br><span class="text-xs font-normal text-gray-500">09:10-10:30</span></th>
+                                <th class="px-2 py-3 text-center min-w-[80px] bg-green-100">P2<br><span class="text-xs font-normal text-gray-500">10:40-12:30</span></th>
+                                <th class="px-2 py-3 text-center min-w-[80px] bg-yellow-100">P3<br><span class="text-xs font-normal text-gray-500">13:30-15:30</span></th>
+                                <th class="px-2 py-3 text-center min-w-[80px] bg-orange-100">P4<br><span class="text-xs font-normal text-gray-500">15:40-18:00</span></th>
+                                <th class="px-2 py-3 text-center min-w-[80px] bg-red-100">P5<br><span class="text-xs font-normal text-gray-500">18:30-20:30</span></th>
+                                <th class="px-2 py-3 text-center font-bold text-blue-600">Total</th>
+                                <th class="px-2 py-3 text-center font-bold text-green-600">Total OK</th>
+                                <th class="px-2 py-3 text-center font-bold text-red-600">Total NG</th>
+                                <th class="px-2 py-3 text-center rounded-tr-lg">Action</th>
+                            </tr>
+                        </thead>
+                        <!-- Summary Rows -->
+                        <tbody id="summaryTableBody"></tbody>
+                        <!-- PDI Rows -->
+                        <tbody id="pdiTableBody"></tbody>
+                        <!-- Repair Rows -->
+                        <tbody id="repairTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+             <!-- Daily Notes Edit Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">หมายเหตุประจำวัน</h3>
+                <textarea id="editDailyNotes" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="10" placeholder="กรอกหมายเหตุประจำวัน..." onchange="autoSaveData()"></textarea>
+            </div>
+
+            <!-- Save Button -->
+            <div class="text-center">
+                <button onclick="saveData()" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store chart instances globally to destroy them before re-rendering
+        let dailyChartInstance = null;
+        window.myMonthlyModelOkBarChart = null;
+        window.myMonthlyModelNgBarChart = null;
+        let isUpdatingTotals = false; // Flag to prevent concurrent updates
+        let currentSite = '2ps'; // Default site
+        let currentView = 'report'; // Default view
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "https://pdireportv2-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // --- Tab Switching ---
+        function switchTab(site, view) {
+            currentSite = site;
+            currentView = view;
+
+            // Update Tab Styles
+            document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+                btn.style.backgroundColor = '';
+                btn.style.color = '#4b5563';
+            });
+            
+            const activeTabId = `tab-${site}-${view}`;
+            const activeBtn = document.getElementById(activeTabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('tab-inactive');
+                activeBtn.classList.add('tab-active');
+                activeBtn.style.backgroundColor = '#2563eb';
+                activeBtn.style.color = 'white';
+            }
+
+            // Update Header (Fixed to 2PS REPORT as requested)
+            const mainTitle = document.getElementById('mainTitle');
+            mainTitle.textContent = site === '2ps' ? '2PS REPORT' : '28 ไร่ REPORT';
+
+            // Show/Hide Content
+            const reportContent = document.getElementById('reportContent');
+            const editContent = document.getElementById('editContent');
+
+            if (view === 'report') {
+                reportContent.classList.remove('hidden');
+                editContent.classList.add('hidden');
+            } else {
+                reportContent.classList.add('hidden');
+                editContent.classList.remove('hidden');
+            }
+
+            // Refresh Data
+            const selectedDate = document.getElementById(view === 'report' ? 'reportDate' : 'selectedDate').value;
+            if (selectedDate) {
+                 // Sync date pickers
+                 document.getElementById('reportDate').value = selectedDate;
+                 document.getElementById('selectedDate').value = selectedDate;
+                 
+                 const dateObj = new Date(selectedDate + 'T00:00:00');
+                 loadAndSyncDataForDate(selectedDate);
+                 updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
+            } else {
+                 // Default to today if no date selected
+                 const today = new Date().toISOString().split('T')[0];
+                 document.getElementById('reportDate').value = today;
+                 document.getElementById('selectedDate').value = today;
+                 const dateObj = new Date();
+                 loadAndSyncDataForDate(today);
+                 updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
+            }
+        }
+
+
+        // --- Data Handling and Display ---
+
+        function loadAndSyncDataForDate(date) {
+            document.getElementById('reportDate').value = date;
+            document.getElementById('selectedDate').value = date;
+
+            const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('reportSummaryTitle').textContent = `สรุปยอดสำหรับวันที่ ${formattedDate}`;
+            document.getElementById('editSummaryTitle').textContent = `สรุปยอดสำหรับวันที่ ${formattedDate}`;
+
+            const dateKey = date.replace(/-/g, '_');
+            database.ref('reports/' + dateKey).once('value').then(snapshot => {
+                const data = snapshot.val() || {};
+                let safeData = null;
+
+                // Fallback logic for legacy data structure
+                if (data[currentSite]) {
+                     safeData = data[currentSite];
+                } else if (currentSite === '2ps' && (data.pdiData || data.repairData || data.dailyNotes || data.monthlyTarget)) {
+                     safeData = data;
+                }
+
+                safeData = safeData || { pdiData: [], repairData: [], dailyNotes: '' };
+                
+                updateDailyReportView(safeData);
+                // Populate Tables with targets
+                populateEditSections(safeData.pdiData, safeData.repairData, safeData.pdiTargets, safeData.repairTargets);
+                updateReportTabSummary(safeData);
+                // Update Edit Notes
+                document.getElementById('editDailyNotes').value = safeData.dailyNotes || '';
+            });
+        }
+
+        function updateDailyReportView(dailyData) {
+            let totalPdiOk = 0;
+            let totalRepairOk = 0;
+            
+            if (dailyData.pdiData) {
+                dailyData.pdiData.forEach(m => {
+                    totalPdiOk += m.ok || 0;
+                });
+            }
+            if (dailyData.repairData) {
+                dailyData.repairData.forEach(m => {
+                    totalRepairOk += m.ok || 0;
+                });
+            }
+            document.getElementById('todayCount').textContent = (totalPdiOk + totalRepairOk).toLocaleString();
+            document.getElementById('dailyNotes').value = dailyData.dailyNotes || '';
+        }
+
+        function updateReportTabSummary(dailyData) {
+            let pdiTotal = 0, pdiOk = 0, pdiNg = 0;
+            let pdiModelHtml = '';
+            const pdiModelDetailsDiv = document.getElementById('reportPdiModelDetails');
+            const pdiModels = {};
+
+            if (dailyData.pdiData) {
+                dailyData.pdiData.forEach(m => {
+                    // P1-P5 now have dedicated Total keys if saved with new format
+                    // Logic: prefer p1_total, fallback to p1
+                    const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
+                    const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
+                    const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
+                    const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
+                    const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
+                    
+                    let itemTotal = 0;
+                    if (m.p1 !== undefined || m.p1_total !== undefined) {
+                         itemTotal = p1 + p2 + p3 + p4 + p5;
+                    } else {
+                        itemTotal = m.pdi || 0;
+                    }
+
+                    const total = itemTotal;
+                    const ok = m.ok || 0;
+                    const ng = Math.max(0, total - ok);
+                    
+                    pdiTotal += total;
+                    pdiOk += ok;
+                    pdiNg += ng;
+
+                    if (total > 0) {
+                        const modelName = m.model.toUpperCase();
+                        if (!pdiModels[modelName]) pdiModels[modelName] = { total: 0, ok: 0, ng: 0 };
+                        pdiModels[modelName].total += total;
+                        pdiModels[modelName].ok += ok;
+                        pdiModels[modelName].ng += ng;
+                    }
+                });
+            }
+             Object.keys(pdiModels).sort().forEach(model => {
+                const data = pdiModels[model];
+                pdiModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${model}</span><span class="text-gray-600">รวม: ${data.total} | OK: ${data.ok} | NG: ${data.ng}</span></div>`;
+            });
+
+
+            let repairTotal = 0, repairOk = 0, repairNg = 0;
+            let repairModelHtml = '';
+            const repairModelDetailsDiv = document.getElementById('reportRepairModelDetails');
+            const repairModels = {};
+            
+            if (dailyData.repairData) {
+                dailyData.repairData.forEach(m => {
+                    const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
+                    const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
+                    const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
+                    const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
+                    const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
+
+                    let itemTotal = 0;
+                    if (m.p1 !== undefined || m.p1_total !== undefined) {
+                         itemTotal = p1 + p2 + p3 + p4 + p5;
+                    } else {
+                         itemTotal = m.repair || 0;
+                    }
+
+                    const total = itemTotal;
+                    const ok = m.ok || 0;
+                    const ng = Math.max(0, total - ok);
+                    
+                    repairTotal += total;
+                    repairOk += ok;
+                    repairNg += ng;
+
+                    if (total > 0) {
+                        const modelName = m.model.toUpperCase();
+                         if (!repairModels[modelName]) repairModels[modelName] = { total: 0, ok: 0, ng: 0 };
+                        repairModels[modelName].total += total;
+                        repairModels[modelName].ok += ok;
+                        repairModels[modelName].ng += ng;
+                    }
+                });
+            }
+             Object.keys(repairModels).sort().forEach(model => {
+                const data = repairModels[model];
+                repairModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${model}</span><span class="text-gray-600">รวม: ${data.total} | OK: ${data.ok} | NG: ${data.ng}</span></div>`;
+            });
+
+                
+            document.getElementById('reportPdiTotal').textContent = pdiTotal;
+            document.getElementById('reportPdiOk').textContent = pdiOk;
+            document.getElementById('reportPdiNg').textContent = pdiNg;
+            pdiModelDetailsDiv.innerHTML = pdiModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+
+            document.getElementById('reportRepairTotal').textContent = repairTotal;
+            document.getElementById('reportRepairOk').textContent = repairOk;
+            document.getElementById('reportRepairNg').textContent = repairNg;
+            repairModelDetailsDiv.innerHTML = repairModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+
+            // --- NEW LOGIC for TOTAL Card on REPORT TAB---
+            const grandTotal = pdiTotal + repairTotal;
+            const totalOk = pdiOk + repairOk;
+            const totalNg = pdiNg + repairNg;
+
+            document.getElementById('reportGrandTotal').textContent = grandTotal;
+            document.getElementById('reportTotalOk').textContent = totalOk;
+            document.getElementById('reportTotalNg').textContent = totalNg;
+
+            const totalModelData = { ...pdiModels };
+            Object.keys(repairModels).forEach(model => {
+                if(!totalModelData[model]) totalModelData[model] = {total: 0, ok: 0, ng: 0};
+                totalModelData[model].total += (repairModels[model]?.total || 0);
+                totalModelData[model].ok += (repairModels[model]?.ok || 0);
+                totalModelData[model].ng += (repairModels[model]?.ng || 0);
+            });
+
+            let totalModelHtml = '';
+            Object.keys(totalModelData).sort().forEach(model => {
+                const data = totalModelData[model];
+                if(data.total > 0) {
+                    totalModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${model}</span><span class="text-gray-600">รวม: ${data.total} | OK: ${data.ok} | NG: ${data.ng}</span></div>`;
+                }
+            });
+            document.getElementById('reportTotalModelDetails').innerHTML = totalModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+        }
+        
+        async function updateMonthlyTotalsFromHistoricalData() {
+             const selectedDate = document.getElementById('reportDate').value;
+             if (!selectedDate) return;
+             const dateObj = new Date(selectedDate + 'T00:00:00');
+             updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
+        }
+
+        async function updateTotalsForMonth(year, month) {
+            if (isUpdatingTotals) return; // Prevent re-entry
+            isUpdatingTotals = true;
+            try {
+                // --- NEW: Fetch Monthly Target First ---
+                const monthKey = `${year}_${month + 1}`;
+                const targetSnapshot = await database.ref(`monthly_targets/${monthKey}/${currentSite}`).once('value');
+                const savedTarget = targetSnapshot.val();
+                
+                if (savedTarget) {
+                    document.getElementById('monthlyTarget').textContent = parseInt(savedTarget).toLocaleString();
+                }
+                
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                let monthlyOkTotal = 0, totalPdiAndRepairInput = 0, daysWithData = 0;
+                let monthlyPdiOk = 0, monthlyPdiNg = 0, monthlyPdiTotalInput = 0;
+                let monthlyRepairOk = 0, monthlyRepairNg = 0, monthlyRepairTotalInput = 0;
+                const modelsToRemove = ['TANG EV', 'YUAN PLUS']; // Models to exclude
+                const modelDailyData = {};
+
+                // Prepare all fetch promises
+                const promises = [];
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dateKey = dateStr.replace(/-/g, '_');
+                    promises.push(database.ref('reports/' + dateKey).once('value'));
+                }
+                
+                const snapshots = await Promise.all(promises);
+
+                snapshots.forEach((snapshot, index) => {
+                    const day = index + 1;
+                    const allData = snapshot.val() || {};
+                    let data = null;
+                    if (allData[currentSite]) {
+                        data = allData[currentSite];
+                    } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
+                        data = allData;
+                    }
+
+                    if (data) {
+                        let dayPdiInput = 0, dayRepairInput = 0;
+                        if (data.pdiData) {
+                            data.pdiData.forEach(m => { 
+                                const modelName = m.model.toUpperCase();
+                                if (modelsToRemove.includes(modelName)) return;
+
+                                const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
+                                const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
+                                const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
+                                const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
+                                const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
+
+                                let pdi = 0;
+                                if (m.p1 !== undefined || m.p1_total !== undefined) {
+                                     pdi = p1 + p2 + p3 + p4 + p5;
+                                } else {
+                                     pdi = m.pdi || 0;
+                                }
+
+                                const ok = m.ok || 0;
+                                const ng = Math.max(0, pdi - ok);
+                                
+                                if (!modelDailyData[modelName]) modelDailyData[modelName] = { ok: Array(daysInMonth).fill(0), ng: Array(daysInMonth).fill(0) };
+                                modelDailyData[modelName].ok[day - 1] += ok;
+                                modelDailyData[modelName].ng[day - 1] += ng;
+                                
+                                monthlyPdiOk += ok;
+                                monthlyPdiNg += ng;
+                                monthlyPdiTotalInput += pdi;
+                                dayPdiInput += pdi; 
+                                monthlyOkTotal += ok; 
+                            });
+                        }
+                        if (data.repairData) {
+                            data.repairData.forEach(m => {
+                                const modelName = m.model.toUpperCase();
+                                if (modelsToRemove.includes(modelName)) return;
+                                
+                                const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
+                                const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
+                                const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
+                                const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
+                                const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
+
+                                let repair = 0;
+                                if (m.p1 !== undefined || m.p1_total !== undefined) {
+                                     repair = p1 + p2 + p3 + p4 + p5;
+                                } else {
+                                     repair = m.repair || 0;
+                                }
+
+                                const ok = m.ok || 0;
+                                const ng = Math.max(0, repair - ok);
+                            
+                                if (!modelDailyData[modelName]) modelDailyData[modelName] = { ok: Array(daysInMonth).fill(0), ng: Array(daysInMonth).fill(0) };
+                                modelDailyData[modelName].ok[day - 1] += ok;
+                                modelDailyData[modelName].ng[day - 1] += ng;
+
+                                monthlyRepairOk += ok;
+                                monthlyRepairNg += ng;
+                                monthlyRepairTotalInput += repair;
+                                dayRepairInput += repair;
+                                monthlyOkTotal += ok;
+                            });
+                        }
+                        totalPdiAndRepairInput += (dayPdiInput + dayRepairInput);
+                        if ((dayPdiInput + dayRepairInput) > 0) daysWithData++;
+                    }
+                });
+
+                const modelCumulativeData = JSON.parse(JSON.stringify(modelDailyData));
+                Object.keys(modelCumulativeData).forEach(model => {
+                    for (let i = 1; i < daysInMonth; i++) {
+                        modelCumulativeData[model].ok[i] += modelCumulativeData[model].ok[i - 1];
+                        modelCumulativeData[model].ng[i] += modelCumulativeData[model].ng[i - 1];
+                    }
+                });
+                
+                // Top cards
+                document.getElementById('monthlyCount').textContent = monthlyOkTotal.toLocaleString();
+                document.getElementById('carsOK').textContent = monthlyOkTotal.toLocaleString();
+                document.getElementById('totalPDI').textContent = totalPdiAndRepairInput.toLocaleString();
+                document.getElementById('dailyAverage').textContent = daysWithData > 0 ? Math.round(monthlyOkTotal / daysWithData) : 0;
+                updateRemaining();
+
+                // PDI Percentage section (monthly)
+                document.getElementById('pdiOkPercent').textContent = (monthlyPdiTotalInput > 0 ? (monthlyPdiOk / monthlyPdiTotalInput * 100).toFixed(1) : '0.0') + '%';
+                document.getElementById('pdiNgPercent').textContent = (monthlyPdiTotalInput > 0 ? (monthlyPdiNg / monthlyPdiTotalInput * 100).toFixed(1) : '0.0') + '%';
+                document.getElementById('pdiOkCount').textContent = monthlyPdiOk;
+                document.getElementById('pdiNgCount').textContent = monthlyPdiNg;
+                document.getElementById('pdiTotal').textContent = `${monthlyPdiTotalInput} คัน`;
+
+                // REPAIR Percentage section (monthly)
+                document.getElementById('repairOkPercent').textContent = (monthlyRepairTotalInput > 0 ? (monthlyRepairOk / monthlyRepairTotalInput * 100).toFixed(1) : '0.0') + '%';
+                document.getElementById('repairNgPercent').textContent = (monthlyRepairTotalInput > 0 ? (monthlyRepairNg / monthlyRepairTotalInput * 100).toFixed(1) : '0.0') + '%';
+                document.getElementById('repairOkCount').textContent = monthlyRepairOk;
+                document.getElementById('repairNgCount').textContent = monthlyRepairNg;
+                document.getElementById('repairTotal').textContent = `${monthlyRepairTotalInput} คัน`;
+
+                // TOTAL Percentage section (monthly)
+                const totalOk = monthlyPdiOk + monthlyRepairOk;
+                const totalNg = monthlyPdiNg + monthlyRepairNg;
+                const grandTotal = monthlyPdiTotalInput + monthlyRepairTotalInput;
+
+                document.getElementById('totalOkCount').textContent = totalOk;
+                document.getElementById('totalNgCount').textContent = totalNg;
+                document.getElementById('grandTotal').textContent = `${grandTotal} คัน`;
+                document.getElementById('totalOkPercent').textContent = (grandTotal > 0 ? (totalOk / grandTotal * 100).toFixed(1) : '0.0') + '%';
+                document.getElementById('totalNgPercent').textContent = (grandTotal > 0 ? (totalNg / grandTotal * 100).toFixed(1) : '0.0') + '%';
+
+                createMonthlyModelBarCharts(modelCumulativeData, year, month);
+                updateChartSummaries(modelCumulativeData, year, month);
+                createDailyChart(year, month);
+                update3MonthSummary(year, month);
+            } finally {
+                isUpdatingTotals = false;
+            }
+        }
+
+        function populateEditSections(pdiData = [], repairData = [], pdiTargets = {}, repairTargets = {}) {
+            const summaryTableBody = document.getElementById('summaryTableBody');
+            const pdiSectionDiv = document.getElementById('pdiTableBody');
+            const repairSectionDiv = document.getElementById('repairTableBody');
+            
+            summaryTableBody.innerHTML = '';
+            pdiSectionDiv.innerHTML = '';
+            repairSectionDiv.innerHTML = '';
+
+            // 1. Summary Rows (Target, Actual, Remaining) - ใช้ pdiTargets เป็นหลัก (Global Target)
+            summaryTableBody.innerHTML = createSummarySection('pdi', pdiTargets);
+
+            // 2. PDI Section
+            // Add Header Row for PDI
+            const pdiHeaderRow = document.createElement('tr');
+            pdiHeaderRow.className = "bg-blue-100";
+            pdiHeaderRow.innerHTML = `<td colspan="10" class="font-bold text-center py-2 text-blue-800">รถเข้าตรวจ PDI</td>`;
+            pdiSectionDiv.appendChild(pdiHeaderRow);
+
+            const modelsToRemove = ['TANG EV', 'YUAN PLUS'];
+            const defaultModels = ['DOLPHIN', 'SEALION 6', 'ATTO3', 'SEAL 5'];
+            
+            const filteredPdiData = pdiData.filter(d => !modelsToRemove.includes(d.model.toUpperCase()));
+            const allPdiModels = new Set([...defaultModels, ...filteredPdiData.map(d => d.model.toUpperCase())]);
+            allPdiModels.forEach(modelName => {
+                const modelData = filteredPdiData.find(d => d.model.toUpperCase() === modelName.toUpperCase()) || {};
+                pdiSectionDiv.appendChild(createPdiRow(modelName, modelData));
+            });
+
+            // 3. Repair Section
+            // Add Header Row for Repair
+            const repairHeaderRow = document.createElement('tr');
+            repairHeaderRow.className = "bg-red-100";
+            repairHeaderRow.innerHTML = `<td colspan="10" class="font-bold text-center py-2 text-red-800">รถ REPAIR</td>`;
+            repairSectionDiv.appendChild(repairHeaderRow);
+            
+            const filteredRepairData = repairData.filter(d => !modelsToRemove.includes(d.model.toUpperCase()));
+            const allRepairModels = new Set([...defaultModels, ...filteredRepairData.map(d => d.model.toUpperCase())]);
+            allRepairModels.forEach(modelName => {
+                const modelData = filteredRepairData.find(d => d.model.toUpperCase() === modelName.toUpperCase()) || {};
+                repairSectionDiv.appendChild(createRepairRow(modelName, modelData));
+            });
+
+            // 4. Calculate Initial Values
+            updateSummaryValues('pdi'); // Calculates Global Totals
+
+            updateEditTabSummary();
+        }
+
+        function createSummarySection(type, targets = {}) {
+            const targetVals = [
+                targets.p1 || 0,
+                targets.p2 || 0,
+                targets.p3 || 0,
+                targets.p4 || 0,
+                targets.p5 || 0
+            ];
+
+            const pColors = ['bg-purple-100', 'bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-100'];
+
+            const createRow = (label, isInput, rowClass, idPrefix) => {
+                let cells = `<td class="px-4 py-3 text-right text-gray-700 font-bold">${label}</td>`;
+                targetVals.forEach((val, idx) => {
+                    const cellId = `${type}-${idPrefix}-p${idx+1}`;
+                    const colorClass = pColors[idx];
+                    if (isInput) {
+                        cells += `<td class="px-2 py-3 text-center ${colorClass}"><input type="number" id="${cellId}" class="w-full p-1 border border-gray-300 rounded text-center font-bold text-gray-700" value="${val}" onchange="onTargetChange('${type}')"></td>`;
+                    } else {
+                        // For Actual and Balance, we use text spans/cells
+                        // We initialize with 0 or calculate later. Here we put placeholder.
+                        cells += `<td id="${cellId}" class="px-2 py-3 text-center font-bold text-lg ${colorClass}">0</td>`;
+                    }
+                });
+                
+                // Add Total Cell for the summary row
+                const totalId = `${type}-${idPrefix}-total`;
+                cells += `<td id="${totalId}" class="px-2 py-3 text-center font-bold text-lg ${rowClass}">0</td>`;
+                
+                cells += `<td colspan="3"></td>`; // Remaining Spacers (Total OK, Total NG, Action)
+                return `<tr class="summary-row ${rowClass}">${cells}</tr>`;
+            };
+
+            return `
+                ${createRow('Total Target', true, '', 'target')}
+                ${createRow('Total Actual', false, 'text-blue-600', 'actual')}
+                ${createRow('Remaining', false, 'text-orange-600', 'balance')}
+            `;
+        }
+
+        function createPdiRow(modelName, data) {
+            const tr = document.createElement('tr');
+            tr.className = "border-b hover:bg-gray-50 transition-colors model-row"; // Added model-row class
+
+            // Helper to create cell
+            const createCell = (total, ok) => `
+                <div class="input-stack">
+                    <input type="number" class="custom-table-input w-full p-1 border border-blue-300 rounded focus:ring-blue-500 focus:border-blue-500 text-blue-800" value="${total}" onchange="calculatePdiTotal(this)">
+                    <input type="number" class="custom-table-input w-full p-1 border border-green-300 rounded focus:ring-green-500 focus:border-green-500 text-green-800" value="${ok}" onchange="calculatePdiTotal(this)">
+                </div>
+            `;
+
+            // Prepare values (legacy support: p1 -> p1_total, 0 OK if not present)
+            const p1_total = data.p1_total !== undefined ? data.p1_total : (data.p1 || 0);
+            const p1_ok = data.p1_ok || 0;
+            
+            const p2_total = data.p2_total !== undefined ? data.p2_total : (data.p2 || 0);
+            const p2_ok = data.p2_ok || 0;
+
+            const p3_total = data.p3_total !== undefined ? data.p3_total : (data.p3 || 0);
+            const p3_ok = data.p3_ok || 0;
+
+            const p4_total = data.p4_total !== undefined ? data.p4_total : (data.p4 || 0);
+            const p4_ok = data.p4_ok || 0;
+
+            const p5_total = data.p5_total !== undefined ? data.p5_total : (data.p5 || 0);
+            const p5_ok = data.p5_ok || 0;
+
+            // Check legacy single OK
+            if (data.ok && (p1_ok+p2_ok+p3_ok+p4_ok+p5_ok) === 0 && data.ok > 0) {
+                 // Don't auto-distribute legacy OK, user must fix. Just display what we have.
+            }
+
+            const total = p1_total + p2_total + p3_total + p4_total + p5_total;
+            const totalOk = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
+            const ng = Math.max(0, total - totalOk);
+
+            tr.innerHTML = `
+                <td class="px-4 py-3 font-medium text-gray-900">${modelName.toUpperCase()}</td>
+                <td class="px-2 py-3 text-center bg-purple-100">${createCell(p1_total, p1_ok)}</td>
+                <td class="px-2 py-3 text-center bg-green-100">${createCell(p2_total, p2_ok)}</td>
+                <td class="px-2 py-3 text-center bg-yellow-100">${createCell(p3_total, p3_ok)}</td>
+                <td class="px-2 py-3 text-center bg-orange-100">${createCell(p4_total, p4_ok)}</td>
+                <td class="px-2 py-3 text-center bg-red-100">${createCell(p5_total, p5_ok)}</td>
+                <td class="px-2 py-3 text-center font-bold text-blue-600 text-lg"><span class="pdi-total">${total}</span></td>
+                <td class="px-2 py-3 text-center font-bold text-green-600 text-lg"><span class="pdi-ok">${totalOk}</span></td>
+                <td class="px-2 py-3 text-center font-bold text-red-600 text-lg"><span class="pdi-ng">${ng}</span></td>
+                <td class="px-2 py-3 text-center">
+                    <button onclick="removePdiRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            `;
+            return tr;
+        }
+
+        function createRepairRow(modelName, data) {
+            const tr = document.createElement('tr');
+            tr.className = "border-b hover:bg-gray-50 transition-colors model-row"; // Added model-row class
+
+             const createCell = (total, ok) => `
+                <div class="input-stack">
+                    <input type="number" class="custom-table-input w-full p-1 border border-blue-300 rounded focus:ring-blue-500 focus:border-blue-500 text-blue-800" value="${total}" onchange="calculateRepairTotal(this)">
+                    <input type="number" class="custom-table-input w-full p-1 border border-green-300 rounded focus:ring-green-500 focus:border-green-500 text-green-800" value="${ok}" onchange="calculateRepairTotal(this)">
+                </div>
+            `;
+
+             // Prepare values
+            const p1_total = data.p1_total !== undefined ? data.p1_total : (data.p1 || 0);
+            const p1_ok = data.p1_ok || 0;
+            
+            const p2_total = data.p2_total !== undefined ? data.p2_total : (data.p2 || 0);
+            const p2_ok = data.p2_ok || 0;
+
+            const p3_total = data.p3_total !== undefined ? data.p3_total : (data.p3 || 0);
+            const p3_ok = data.p3_ok || 0;
+
+            const p4_total = data.p4_total !== undefined ? data.p4_total : (data.p4 || 0);
+            const p4_ok = data.p4_ok || 0;
+
+            const p5_total = data.p5_total !== undefined ? data.p5_total : (data.p5 || 0);
+            const p5_ok = data.p5_ok || 0;
+
+            // Legacy fallback for repair totals if p1..p5 are empty
+            let initialTotal = 0;
+            if ((p1_total+p2_total+p3_total+p4_total+p5_total) === 0 && data.repair) {
+                // Don't auto distribute, just keep 0 so user inputs it correctly
+            }
+
+            const total = p1_total + p2_total + p3_total + p4_total + p5_total;
+            const totalOk = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
+            const ng = Math.max(0, total - totalOk);
+
+            tr.innerHTML = `
+                <td class="px-4 py-3 font-medium text-gray-900">${modelName.toUpperCase()}</td>
+                <td class="px-2 py-3 text-center bg-purple-100">${createCell(p1_total, p1_ok)}</td>
+                <td class="px-2 py-3 text-center bg-green-100">${createCell(p2_total, p2_ok)}</td>
+                <td class="px-2 py-3 text-center bg-yellow-100">${createCell(p3_total, p3_ok)}</td>
+                <td class="px-2 py-3 text-center bg-orange-100">${createCell(p4_total, p4_ok)}</td>
+                <td class="px-2 py-3 text-center bg-red-100">${createCell(p5_total, p5_ok)}</td>
+                <td class="px-2 py-3 text-center font-bold text-blue-600 text-lg"><span class="repair-total">${total}</span></td>
+                <td class="px-2 py-3 text-center font-bold text-green-600 text-lg"><span class="repair-ok">${totalOk}</span></td>
+                <td class="px-2 py-3 text-center font-bold text-red-600 text-lg"><span class="repair-ng">${ng}</span></td>
+                <td class="px-2 py-3 text-center">
+                    <button onclick="removeRepairRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            `;
+            return tr;
+        }
+
+        function updateSummaryValues(type) {
+            // type is 'pdi' mainly, but we scan ALL .model-row to get total actual
+            // This function now calculates Global Totals (PDI + Repair)
+            const tableId = 'pdiTable'; // Combined Table ID
+            let actuals = [0, 0, 0, 0, 0];
+            
+            // Sum up actuals from ALL model rows in the Combined Table
+            document.querySelectorAll(`#${tableId} tr.model-row`).forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                for(let i=0; i<5; i++) {
+                    actuals[i] += parseInt(inputs[i*2].value) || 0; // Summing Totals (index 0, 2, 4...)
+                }
+            });
+
+            let totalTarget = 0;
+            let totalActual = 0;
+            let totalBalance = 0;
+
+            // Get Targets (using 'pdi' prefix as main targets) and Calculate Balance
+            for(let i=0; i<5; i++) {
+                const pIndex = i + 1;
+                const targetInput = document.getElementById(`pdi-target-p${pIndex}`);
+                const actualCell = document.getElementById(`pdi-actual-p${pIndex}`);
+                const balanceCell = document.getElementById(`pdi-balance-p${pIndex}`);
+
+                if (targetInput && actualCell && balanceCell) {
+                    const targetVal = parseInt(targetInput.value) || 0;
+                    const actualVal = actuals[i];
+                    const balanceVal = targetVal - actualVal;
+
+                    actualCell.textContent = actualVal;
+                    balanceCell.textContent = balanceVal;
+
+                    // Accumulate Totals
+                    totalTarget += targetVal;
+                    totalActual += actualVal;
+                    totalBalance += balanceVal;
+                }
+            }
+
+            // Update Total Columns in Summary Rows (Keep for structure)
+            const targetTotalCell = document.getElementById(`pdi-target-total`);
+            const actualTotalCell = document.getElementById(`pdi-actual-total`);
+            const balanceTotalCell = document.getElementById(`pdi-balance-total`);
+
+            if (targetTotalCell) targetTotalCell.textContent = totalTarget;
+            if (actualTotalCell) actualTotalCell.textContent = totalActual;
+            if (balanceTotalCell) balanceTotalCell.textContent = totalBalance;
+            
+            // --- Update New Summary Cards ---
+            const cardTarget = document.getElementById('card-total-target');
+            const cardActual = document.getElementById('card-total-actual');
+            const cardRemaining = document.getElementById('card-remaining');
+            
+            if (cardTarget) cardTarget.textContent = totalTarget.toLocaleString();
+            if (cardActual) cardActual.textContent = totalActual.toLocaleString();
+            if (cardRemaining) cardRemaining.textContent = totalBalance.toLocaleString();
+        }
+
+        function onTargetChange(type) {
+            updateSummaryValues(type); // type is 'pdi' usually
+            autoSaveData();
+        }
+
+        function calculatePdiTotal(element) {
+            const row = element.closest('tr');
+            const inputs = row.querySelectorAll('input[type="number"]');
+            // 0: P1_Tot, 1: P1_OK, 2: P2_Tot, 3: P2_OK ... 9: P5_OK
+            
+            let total = 0;
+            let totalOk = 0;
+            
+            for(let i=0; i<5; i++) {
+                total += parseInt(inputs[i*2].value) || 0;
+                totalOk += parseInt(inputs[i*2+1].value) || 0;
+            }
+
+            const ng = Math.max(0, total - totalOk);
+
+            row.querySelector('.pdi-total').textContent = total;
+            row.querySelector('.pdi-ok').textContent = totalOk;
+            row.querySelector('.pdi-ng').textContent = ng;
+
+            // Recalculate summary rows
+            updateSummaryValues('pdi');
+
+            updateEditTabSummary();
+            autoSaveData();
+        }
+
+        function calculateRepairTotal(element) {
+            const row = element.closest('tr');
+            const inputs = row.querySelectorAll('input[type="number"]');
+            
+            let total = 0;
+            let totalOk = 0;
+            
+             for(let i=0; i<5; i++) {
+                total += parseInt(inputs[i*2].value) || 0;
+                totalOk += parseInt(inputs[i*2+1].value) || 0;
+            }
+
+            const ng = Math.max(0, total - totalOk);
+
+            row.querySelector('.repair-total').textContent = total;
+            row.querySelector('.repair-ok').textContent = totalOk;
+            row.querySelector('.repair-ng').textContent = ng;
+
+            updateSummaryValues('pdi'); // Trigger global update
+
+            updateEditTabSummary();
+            autoSaveData();
+        }
+
+        function getTargetsFromSummary(type) {
+            // We only use 'pdi' prefix for targets now as Global
+            if (type === 'repair') return {}; // No separate repair targets
+            return {
+                p1: parseInt(document.getElementById(`pdi-target-p1`)?.value) || 0,
+                p2: parseInt(document.getElementById(`pdi-target-p2`)?.value) || 0,
+                p3: parseInt(document.getElementById(`pdi-target-p3`)?.value) || 0,
+                p4: parseInt(document.getElementById(`pdi-target-p4`)?.value) || 0,
+                p5: parseInt(document.getElementById(`pdi-target-p5`)?.value) || 0
+            };
+        }
+
+        function addNewCarModel(section) {
+            const carModel = prompt('กรอกชื่อรุ่นรถใหม่:');
+            if (carModel && carModel.trim() !== '') {
+                let tbodyId, createRowFunc;
+                
+                if (section === 'pdi') {
+                    tbodyId = 'pdiTableBody';
+                    createRowFunc = createPdiRow;
+                } else {
+                    tbodyId = 'repairTableBody';
+                    createRowFunc = createRepairRow;
+                }
+                
+                const tbody = document.getElementById(tbodyId);
+                if (tbody) {
+                    // Create empty data object for new row
+                    const emptyData = { p1_total:0, p1_ok:0, p2_total:0, p2_ok:0, p3_total:0, p3_ok:0, p4_total:0, p4_ok:0, p5_total:0, p5_ok:0 };
+                    tbody.appendChild(createRowFunc(carModel.trim(), emptyData));
+                    updateSummaryValues('pdi'); // Update sums
+                    updateEditTabSummary();
+                    autoSaveData(); // Save immediately so the new model persists
+                }
+            }
+        }
+
+        function removePdiRow(button) {
+            const row = button.closest('tr');
+            const modelName = row.querySelector('td').textContent.trim();
+            if (confirm(`คุณต้องการลบรุ่นรถ "${modelName}" หรือไม่?`)) {
+                row.remove();
+                updateSummaryValues('pdi');
+                updateEditTabSummary();
+                autoSaveData();
+            }
+        }
+
+        function removeRepairRow(button) {
+            const row = button.closest('tr');
+            const modelName = row.querySelector('td').textContent.trim();
+            if (confirm(`คุณต้องการลบรุ่นรถ "${modelName}" หรือไม่?`)) {
+                row.remove();
+                updateSummaryValues('pdi');
+                updateEditTabSummary();
+                autoSaveData();
+            }
+        }
+        
+        function autoSaveData() {
+            const selectedDate = document.getElementById('selectedDate').value;
+            
+            // Collect targets from summary rows at the top
+            const pdiTargets = getTargetsFromSummary('pdi'); // Global Targets
+            const repairTargets = {}; // Empty as requested
+            
+            // Determine which notes to save based on visibility
+            let dailyNotesVal = '';
+            if (!document.getElementById('editContent').classList.contains('hidden')) {
+                dailyNotesVal = document.getElementById('editDailyNotes').value;
+            } else {
+                dailyNotesVal = document.getElementById('dailyNotes').value;
+            }
+
+            const data = { 
+                date: selectedDate, 
+                pdiData: getPdiData(), 
+                repairData: getRepairData(), 
+                pdiTargets: pdiTargets,
+                repairTargets: repairTargets,
+                dailyNotes: dailyNotesVal, 
+                timestamp: new Date().toISOString() 
+            };
+            
+            const dateKey = selectedDate.replace(/-/g, '_');
+            database.ref(`reports/${dateKey}/${currentSite}`).set(data);
+             if(selectedDate === document.getElementById('reportDate').value) {
+                 updateDailyReportView(data);
+                 // Update both note fields to stay in sync
+                 document.getElementById('dailyNotes').value = dailyNotesVal;
+                 document.getElementById('editDailyNotes').value = dailyNotesVal;
+             }
+             const dateObj = new Date(selectedDate + 'T00:00:00');
+             updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
+        }
+
+        function saveDailyReport() {
+            const selectedDate = document.getElementById('reportDate').value;
+            if (!selectedDate) { alert("กรุณาเลือกวันที่ก่อนบันทึกหมายเหตุ"); return; }
+            const notes = document.getElementById('dailyNotes').value;
+            const dateKey = selectedDate.replace(/-/g, '_');
+            database.ref(`reports/${dateKey}/${currentSite}/dailyNotes`).set(notes)
+                .then(() => alert('บันทึกหมายเหตุเรียบร้อยแล้ว!'))
+                .catch(error => alert('เกิดข้อผิดพลาดในการบันทึกหมายเหตุ: ' + error.message));
+        }
+
+        function editTarget() {
+            const currentTarget = document.getElementById('monthlyTarget').textContent.replace(/,/g, '');
+            const newTarget = prompt('กรอกเป้าหมายรายเดือนใหม่:', currentTarget);
+            
+            if (newTarget && !isNaN(newTarget)) {
+                // Update UI immediately
+                document.getElementById('monthlyTarget').textContent = parseInt(newTarget).toLocaleString();
+                updateRemaining();
+
+                // Determine Date context
+                const selectedDate = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
+                const dateObj = new Date(selectedDate + 'T00:00:00');
+                const year = dateObj.getFullYear();
+                const month = dateObj.getMonth() + 1; // 1-based
+                const monthKey = `${year}_${month}`;
+
+                // Save to centralized monthly path
+                database.ref(`monthly_targets/${monthKey}/${currentSite}`).set(parseInt(newTarget))
+                    .then(() => { 
+                        showTargetUpdateIndicator(); 
+                        // Refresh charts/calculations to reflect new percentage/target line
+                        updateTotalsForMonth(year, month - 1); 
+                    })
+                    .catch((error) => console.error('Error updating target:', error));
+            }
+        }
+
+        function showTargetUpdateIndicator() {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease;`;
+            indicator.innerHTML = '🎯 อัพเดทเป้าหมายแล้ว';
+            document.body.appendChild(indicator);
+            setTimeout(() => { indicator.style.opacity = '1'; indicator.style.transform = 'translateY(0)'; }, 10);
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+                indicator.style.transform = 'translateY(-10px)';
+                setTimeout(() => indicator.parentNode && indicator.remove(), 300);
+            }, 2000);
+        }
+        function sendToLine() { createTextAndImageReport(); }
+        function createTextAndImageReport() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const textSummary = `📊 2PS REPORT - สรุปรายงาน\n📅 ${dateStr} ⏰ ${timeStr}\n\n🎯 เป้าหมายรายเดือน: ${document.getElementById('monthlyTarget').textContent} คัน\n✅ รถ OK: ${document.getElementById('carsOK').textContent} คัน\n⏳ ขาดอีก: ${document.getElementById('remaining').textContent} คัน\n📊 ยอด PDI ทั้งหมด: ${document.getElementById('totalPDI').textContent} คัน\n\n📅 ยอดรายวัน:\n• วันนี้: ${document.getElementById('todayCount').textContent} คัน\n• เดือนนี้: ${document.getElementById('monthlyCount').textContent} คัน\n• เฉลี่ย/วัน: ${document.getElementById('dailyAverage').textContent} คัน\n\n📋 % การตรวจ OK/NG:\n🔧 PDI: OK ${document.getElementById('pdiOkPercent').textContent} | NG ${document.getElementById('pdiNgPercent').textContent}\n🔨 REPAIR: OK ${document.getElementById('repairOkPercent').textContent} | NG ${document.getElementById('repairNgPercent').textContent}\n\n📝 หมายเหตุ: ${document.getElementById('dailyNotes').value}\n\n📸 รูปภาพรายละเอียดจะถูกสร้างและดาวน์โหลดในขั้นตอนถัดไป...`;
+            const textModal = document.createElement('div');
+            textModal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);`;
+            textModal.innerHTML = `<div style="background: white; padding: 30px; border-radius: 20px; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);"><div style="text-align: center; margin-bottom: 25px;"><h3 style="margin: 0; color: #1f2937; font-size: 24px; font-weight: bold;">📱 ข้อความสำหรับ LINE</h3><p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px;">คัดลอกข้อความด้านล่างไปส่งใน LINE</p></div><textarea id="textSummaryArea" readonly style="width: 100%; height: 350px; padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-family: 'Kanit', sans-serif; font-size: 13px; line-height: 1.5; background: #f9fafb; resize: none;">${textSummary}</textarea><div style="display: flex; gap: 15px; margin-top: 20px;"><button onclick="copyTextSummary()" style="flex: 1; background: #10b981; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">📋 คัดลอกข้อความ</button><button onclick="proceedToCreateImage()" style="flex: 1; background: #3b82f6; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">📸 สร้างรูปภาพ</button></div><button onclick="closeTextModal()" style="width: 100%; background: #6b7280; color: white; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-family: 'Kanit', sans-serif; margin-top: 10px; transition: all 0.2s;">ปิด</button></div>`;
+            document.body.appendChild(textModal);
+        }
+        function copyTextSummary() {
+            const textArea = document.getElementById('textSummaryArea');
+            textArea.select();
+            navigator.clipboard.writeText(textArea.value).then(() => {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ คัดลอกแล้ว!';
+                button.style.background = '#059669';
+                setTimeout(() => { button.innerHTML = originalText; button.style.background = '#10b981'; }, 2000);
+            });
+        }
+        function proceedToCreateImage() { closeTextModal(); setTimeout(createReportImage, 300); }
+        function closeTextModal() {
+            const modal = document.querySelector('div[style*="position: fixed"]');
+            if (modal) modal.remove();
+        }
+        function createReportImage() {
+            html2canvas(document.getElementById('reportContent'), { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `2PS_Report_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+        
+        function updateEditTabSummary() {
+            const pdiData = getPdiData();
+            const repairData = getRepairData();
+
+            let pdiTotal = 0, pdiOk = 0, pdiNg = 0;
+            let pdiModelHtml = '';
+            const pdiModelDetailsDiv = document.getElementById('editPdiModelDetails');
+
+            pdiData.forEach(item => {
+                const total = item.pdi || 0;
+                const ok = item.ok || 0;
+                const ng = item.ng || 0;
+                
+                pdiTotal += total;
+                pdiOk += ok;
+                pdiNg += ng;
+
+                if (total > 0) {
+                    pdiModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${item.model.toUpperCase()}</span><span class="text-gray-600">รวม: ${total} | OK: ${ok} | NG: ${ng}</span></div>`;
+                }
+            });
+
+            let repairTotal = 0, repairOk = 0, repairNg = 0;
+            let repairModelHtml = '';
+            const repairModelDetailsDiv = document.getElementById('editRepairModelDetails');
+
+            repairData.forEach(item => {
+                const total = item.repair || 0;
+                const ok = item.ok || 0;
+                const ng = item.ng || 0;
+                
+                repairTotal += total;
+                repairOk += ok;
+                repairNg += ng;
+
+                if (total > 0) {
+                     repairModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${item.model.toUpperCase()}</span><span class="text-gray-600">รวม: ${total} | OK: ${ok} | NG: ${ng}</span></div>`;
+                }
+            });
+
+            document.getElementById('editPdiTotal').textContent = pdiTotal;
+            document.getElementById('editPdiOk').textContent = pdiOk;
+            document.getElementById('editPdiNg').textContent = pdiNg;
+            pdiModelDetailsDiv.innerHTML = pdiModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+
+
+            document.getElementById('editRepairTotal').textContent = repairTotal;
+            document.getElementById('editRepairOk').textContent = repairOk;
+            document.getElementById('editRepairNg').textContent = repairNg;
+            repairModelDetailsDiv.innerHTML = repairModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+
+            // --- NEW LOGIC for TOTAL Card ---
+            const grandTotal = pdiTotal + repairTotal;
+            const totalOk = pdiOk + repairOk;
+            const totalNg = pdiNg + repairNg;
+
+            document.getElementById('editGrandTotal').textContent = grandTotal;
+            document.getElementById('editTotalOk').textContent = totalOk;
+            document.getElementById('editTotalNg').textContent = totalNg;
+
+            const totalModelData = {};
+            pdiData.forEach(item => {
+                const model = item.model.toUpperCase();
+                if(!totalModelData[model]) totalModelData[model] = {total: 0, ok: 0, ng: 0};
+                totalModelData[model].total += item.pdi || 0;
+                totalModelData[model].ok += item.ok || 0;
+                totalModelData[model].ng += item.ng || 0;
+            });
+            repairData.forEach(item => {
+                const model = item.model.toUpperCase();
+                if(!totalModelData[model]) totalModelData[model] = {total: 0, ok: 0, ng: 0};
+                totalModelData[model].total += item.repair || 0;
+                totalModelData[model].ok += item.ok || 0;
+                totalModelData[model].ng += item.ng || 0;
+            });
+
+            let totalModelHtml = '';
+            Object.keys(totalModelData).sort().forEach(model => {
+                const data = totalModelData[model];
+                if(data.total > 0) {
+                    totalModelHtml += `<div class="flex justify-between"><span class="font-medium text-gray-700">${model}</span><span class="text-gray-600">รวม: ${data.total} | OK: ${data.ok} | NG: ${data.ng}</span></div>`;
+                }
+            });
+
+            const totalModelDetailsDiv = document.getElementById('editTotalModelDetails');
+            totalModelDetailsDiv.innerHTML = totalModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
+        }
+
+        // --- Missing Helper Functions ---
+
+        function getPdiData() {
+            const data = [];
+            document.querySelectorAll('#pdiTableBody tr.model-row').forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                const p1_total = parseInt(inputs[0].value) || 0;
+                const p1_ok = parseInt(inputs[1].value) || 0;
+                
+                const p2_total = parseInt(inputs[2].value) || 0;
+                const p2_ok = parseInt(inputs[3].value) || 0;
+
+                const p3_total = parseInt(inputs[4].value) || 0;
+                const p3_ok = parseInt(inputs[5].value) || 0;
+
+                const p4_total = parseInt(inputs[6].value) || 0;
+                const p4_ok = parseInt(inputs[7].value) || 0;
+
+                const p5_total = parseInt(inputs[8].value) || 0;
+                const p5_ok = parseInt(inputs[9].value) || 0;
+
+                const total = p1_total + p2_total + p3_total + p4_total + p5_total;
+                const ok = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
+                const ng = Math.max(0, total - ok);
+
+                data.push({ 
+                    model: row.querySelector('td').textContent.trim(), 
+                    p1_total, p1_ok,
+                    p2_total, p2_ok,
+                    p3_total, p3_ok,
+                    p4_total, p4_ok,
+                    p5_total, p5_ok,
+                    pdi: total, 
+                    ok: ok, 
+                    ng: ng
+                });
+            });
+            return data;
+        }
+
+        function getRepairData() {
+            const data = [];
+            document.querySelectorAll('#repairTableBody tr.model-row').forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                const p1_total = parseInt(inputs[0].value) || 0;
+                const p1_ok = parseInt(inputs[1].value) || 0;
+                
+                const p2_total = parseInt(inputs[2].value) || 0;
+                const p2_ok = parseInt(inputs[3].value) || 0;
+
+                const p3_total = parseInt(inputs[4].value) || 0;
+                const p3_ok = parseInt(inputs[5].value) || 0;
+
+                const p4_total = parseInt(inputs[6].value) || 0;
+                const p4_ok = parseInt(inputs[7].value) || 0;
+
+                const p5_total = parseInt(inputs[8].value) || 0;
+                const p5_ok = parseInt(inputs[9].value) || 0;
+
+                const total = p1_total + p2_total + p3_total + p4_total + p5_total;
+                const ok = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
+                const ng = Math.max(0, total - ok);
+
+                data.push({ 
+                    model: row.querySelector('td').textContent.trim(), 
+                    p1_total, p1_ok,
+                    p2_total, p2_ok,
+                    p3_total, p3_ok,
+                    p4_total, p4_ok,
+                    p5_total, p5_ok,
+                    repair: total, 
+                    ok: ok, 
+                    ng: ng
+                });
+            });
+            return data;
+        }
+
+        function updateRemaining() {
+            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
+            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
+            const remaining = Math.max(0, target - ok);
+            document.getElementById('remaining').textContent = remaining.toLocaleString();
+            updateTopCardPercentages();
+        }
+
+        function updateTopCardPercentages() {
+            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
+            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
+            const remaining = parseInt(document.getElementById('remaining').textContent.replace(/,/g, '')) || 0;
+            const totalPDI = parseInt(document.getElementById('totalPDI').textContent.replace(/,/g, '')) || 0;
+
+            if (target > 0) {
+                const okPercent = (ok / target * 100).toFixed(1);
+                const remainingPercent = (remaining / target * 100).toFixed(1);
+                const totalPdiPercent = (totalPDI / target * 100).toFixed(1);
+
+                document.getElementById('monthlyTargetPercent').textContent = '(100.0%)';
+                document.getElementById('carsOkPercent').textContent = `(${okPercent}%)`;
+                document.getElementById('remainingPercent').textContent = `(${remainingPercent}%)`;
+                document.getElementById('totalPdiPercent').textContent = `(${totalPdiPercent}%)`;
+            } else {
+                document.getElementById('monthlyTargetPercent').textContent = '';
+                document.getElementById('carsOkPercent').textContent = '';
+                document.getElementById('remainingPercent').textContent = '';
+                document.getElementById('totalPdiPercent').textContent = '';
+            }
+        }
+        
+        async function getRealDailyData(dailyTarget, year, month) {
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dailyData = [];
+            
+            const promises = [];
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateKey = dateStr.replace(/-/g, '_');
+                promises.push(database.ref('reports/' + dateKey).once('value'));
+            }
+
+            const snapshots = await Promise.all(promises);
+
+            snapshots.forEach((snapshot, index) => {
+                const day = index + 1;
+                const date = new Date(year, month, day);
+                const dayOfWeek = date.getDay();
+                const allData = snapshot.val() || {};
+                let data = null;
+
+                if (allData[currentSite]) {
+                    data = allData[currentSite];
+                } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
+                    data = allData;
+                }
+
+                let dayOkTotal = 0;
+                let hasRealData = false;
+
+                if (data) {
+                    if (data.pdiData) data.pdiData.forEach(model => { 
+                         dayOkTotal += model.ok || 0; 
+                    });
+                    if (data.repairData) data.repairData.forEach(model => { dayOkTotal += model.ok || 0; });
+                    if (dayOkTotal > 0) hasRealData = true;
+                }
+                dailyData.push({ day, count: dayOkTotal, target: dailyTarget, isReal: hasRealData, dayOfWeek: dayOfWeek });
+            });
+            return dailyData;
+        }
+
+        async function getMonthlyOkTotal(year, month) {
+            let totalOk = 0;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const promises = [];
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateKey = dateStr.replace(/-/g, '_');
+                promises.push(database.ref('reports/' + dateKey).once('value'));
+            }
+            
+            const snapshots = await Promise.all(promises);
+
+            snapshots.forEach(snapshot => {
+                const allData = snapshot.val() || {};
+                let data = null;
+                 if (allData[currentSite]) {
+                    data = allData[currentSite];
+                } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
+                    data = allData;
+                }
+
+                if (data) {
+                    if (data.pdiData) {
+                        data.pdiData.forEach(m => {
+                            totalOk += m.ok || 0;
+                        });
+                    }
+                    if (data.repairData) {
+                        data.repairData.forEach(m => {
+                            totalOk += m.ok || 0;
+                        });
+                    }
+                }
+            });
+            return totalOk;
+        }
+        
+        async function update3MonthSummary(currentYear, currentMonth) {
+            const currentSelectedDate = new Date(currentYear, currentMonth, 1);
+
+            const lastMonthDate = new Date(currentSelectedDate);
+            lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+            const twoMonthsAgoDate = new Date(currentSelectedDate);
+            twoMonthsAgoDate.setMonth(twoMonthsAgoDate.getMonth() - 2);
+            const threeMonthsAgoDate = new Date(currentSelectedDate);
+            threeMonthsAgoDate.setMonth(threeMonthsAgoDate.getMonth() - 3);
+
+            const [lastMonthTotal, twoMonthsAgoTotal, threeMonthsAgoTotal] = await Promise.all([
+                getMonthlyOkTotal(lastMonthDate.getFullYear(), lastMonthDate.getMonth()),
+                getMonthlyOkTotal(twoMonthsAgoDate.getFullYear(), twoMonthsAgoDate.getMonth()),
+                getMonthlyOkTotal(threeMonthsAgoDate.getFullYear(), threeMonthsAgoDate.getMonth())
+            ]);
+
+            document.getElementById('lastMonthLabel').textContent = lastMonthDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            document.getElementById('lastMonthCount').textContent = lastMonthTotal.toLocaleString();
+
+            document.getElementById('twoMonthsAgoLabel').textContent = twoMonthsAgoDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            document.getElementById('twoMonthsAgoCount').textContent = twoMonthsAgoTotal.toLocaleString();
+
+            document.getElementById('threeMonthsAgoLabel').textContent = threeMonthsAgoDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            document.getElementById('threeMonthsAgoCount').textContent = threeMonthsAgoTotal.toLocaleString();
+        }
+
+        // --- Charting Functions (Restored) ---
+
+        function updateChartSummaries(modelCumulativeData, year, month) {
+            const okSummaryDiv = document.getElementById('okChartSummary');
+            const ngSummaryDiv = document.getElementById('ngChartSummary');
+            if (!okSummaryDiv || !ngSummaryDiv) return;
+
+            let totalOk = 0;
+            let okBreakdown = [];
+            let totalNg = 0;
+            let ngBreakdown = [];
+
+            const lastDayIndex = new Date(year, month + 1, 0).getDate() - 1;
+
+            const sortedModels = Object.keys(modelCumulativeData).sort();
+
+            sortedModels.forEach(model => {
+                const modelOk = modelCumulativeData[model].ok[lastDayIndex] || 0;
+                const modelNg = modelCumulativeData[model].ng[lastDayIndex] || 0;
+
+                totalOk += modelOk;
+                totalNg += modelNg;
+
+                if (modelOk > 0) {
+                    okBreakdown.push(`${model}: ${modelOk}`);
+                }
+                if (modelNg > 0) {
+                    ngBreakdown.push(`${model}: ${modelNg}`);
+                }
+            });
+
+            okSummaryDiv.innerHTML = `<strong>รวม OK ทั้งหมด:</strong> ${totalOk} คัน <br> (${okBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
+            ngSummaryDiv.innerHTML = `<strong>รวม NG ทั้งหมด:</strong> ${totalNg} คัน <br> (${ngBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
+        }
+
+        function createMonthlyModelBarCharts(modelCumulativeData, year, month) {
+             const lastDayIndex = new Date(year, month + 1, 0).getDate() - 1;
+            const sortedModels = Object.keys(modelCumulativeData).sort();
+
+            // OK Chart Data
+            const okLabels = [];
+            const okData = [];
+            sortedModels.forEach(model => {
+                const totalOk = modelCumulativeData[model].ok[lastDayIndex];
+                if (totalOk > 0) {
+                    okLabels.push(model);
+                    okData.push(totalOk);
+                }
+            });
+
+            // NG Chart Data
+            const ngLabels = [];
+            const ngData = [];
+             sortedModels.forEach(model => {
+                const totalNg = modelCumulativeData[model].ng[lastDayIndex];
+                if (totalNg > 0) {
+                    ngLabels.push(model);
+                    ngData.push(totalNg);
+                }
+            });
+
+            // Create charts
+            window.myMonthlyModelOkBarChart = createSingleHorizontalBarChart('monthlyModelOkBarChart', window.myMonthlyModelOkBarChart, okLabels, okData, 'rgba(74, 222, 128, 0.8)', 'OK');
+            window.myMonthlyModelNgBarChart = createSingleHorizontalBarChart('monthlyModelNgBarChart', window.myMonthlyModelNgBarChart, ngLabels, ngData, 'rgba(252, 165, 165, 0.8)', 'NG');
+        }
+
+        function createSingleHorizontalBarChart(canvasId, chartInstance, labels, data, color, datasetLabel) {
+            const ctx = document.getElementById(canvasId)?.getContext('2d');
+            if (!ctx) return null;
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = "16px Kanit";
+                ctx.fillStyle = "#6b7280";
+                ctx.textAlign = "center";
+                ctx.fillText(`ไม่มีข้อมูล ${datasetLabel} สำหรับเดือนนี้`, ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return null;
+            }
+            
+            // Note: DataLabels plugin is loaded globally via CDN as chartjs-plugin-datalabels
+            // We register it globally or per chart. Here we assume it's available.
+            // If using chartjs-plugin-datalabels, the configuration is inside `plugins`.
+            
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: data,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, ticks: { font: { family: "'Kanit', sans-serif" } } },
+                        y: { ticks: { font: { family: "'Kanit', sans-serif" } } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                             titleFont: { family: "'Kanit', sans-serif" },
+                             bodyFont: { family: "'Kanit', sans-serif" }
+                        },
+                        datalabels: {
+                            color: '#ffffff',
+                            anchor: 'center',
+                            align: 'center',
+                            font: { weight: 'bold', family: "'Kanit', sans-serif" },
+                            formatter: (value, context) => value > 0 ? value : ''
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels] // Use the plugin variable provided by the CDN
+            });
+        }
+        
+        async function createDailyChart(year, month) {
+            const canvas = document.getElementById('dailyChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Fix: Robustly destroy existing chart on this canvas using Chart.js registry
+            // This prevents "Canvas is already in use" error if the variable tracking fails
+            const existingChart = Chart.getChart(canvas);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            // Also check our global variable just in case
+            if (dailyChartInstance) {
+                dailyChartInstance.destroy();
+                dailyChartInstance = null;
+            }
+            
+            const monthlyTarget = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 4000;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dailyTarget = Math.round(monthlyTarget / daysInMonth);
+            const dailyData = await getRealDailyData(dailyTarget, year, month);
+            const labels = dailyData.map(d => `วันที่ ${d.day}`);
+            const dataPoints = dailyData.map(d => d.count);
+            const pointColors = dailyData.map(d => d.count >= d.target ? '#10b981' : '#ef4444');
+
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ยอดรถ OK จริง (PDI + REPAIR)',
+                        data: dataPoints,
+                        borderColor: '#3b82f6',
+                        backgroundColor: (context) => {
+                            const {ctx, chartArea} = context.chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                            gradient.addColorStop(0, 'rgba(59, 130, 246, 0)');
+                            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
+                            return gradient;
+                        },
+                        fill: true, tension: 0.4, pointBackgroundColor: pointColors, pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff', pointHoverBorderColor: pointColors, pointRadius: 5,
+                        pointHoverRadius: 7, borderWidth: 3,
+                    }, {
+                        label: `เป้าหมาย (${dailyTarget} คัน)`,
+                        data: Array(dailyData.length).fill(dailyTarget),
+                        borderColor: '#f59e0b', borderDash: [5, 5], fill: false,
+                        pointRadius: 0, borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e5e7eb', drawBorder: false }, ticks: { font: { family: "'Kanit', sans-serif" } } },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { 
+                                font: { family: "'Kanit', sans-serif" },
+                                color: function(context) {
+                                    if (dailyData[context.index] && dailyData[context.index].dayOfWeek === 0) { // 0 is Sunday
+                                        return '#ef4444'; // Red for Sundays
+                                    }
+                                    return '#6b7280'; // Default color for other days
+                                }
+                            } 
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                font: { family: "'Kanit', sans-serif", size: 14 }, 
+                                usePointStyle: true,
+                                generateLabels: function(chart) {
+                                    const originalLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    originalLabels.forEach(label => {
+                                        if (label.text.includes('ยอดรถ OK จริง')) {
+                                            label.fillStyle = '#10b981';
+                                            label.strokeStyle = '#10b981';
+                                        }
+                                    });
+                                    return originalLabels;
+                                }
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937', titleFont: { family: "'Kanit', sans-serif", weight: 'bold', size: 14 },
+                            bodyFont: { family: "'Kanit', sans-serif", size: 12 }, padding: 10, cornerRadius: 8, displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += context.parsed.y + ' คัน'; }
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            align: 'top',
+                            color: '#374151',
+                            font: { weight: 'bold', size: 11, family: "'Kanit', sans-serif" },
+                            formatter: (value) => value > 0 ? value : ''
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // --- Helper & Utility functions (Restored) ---
+        function createLoadingModal(text) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1001;`;
+            modal.innerHTML = `<div style="background: white; padding: 20px 30px; border-radius: 10px; display: flex; align-items: center; gap: 15px;"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><span class="text-lg">${text}</span></div>`;
+            return modal;
+        }
+
+        function createSummaryModal(summaryText) {
+            const modalId = 'summaryModal';
+            const existingModal = document.getElementById(modalId);
+            if (existingModal) existingModal.remove();
+
+            const summaryModal = document.createElement('div');
+            summaryModal.id = modalId;
+            summaryModal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);`;
+            summaryModal.innerHTML = `<div style="background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <h3 style="margin: 0; color: #1f2937; font-size: 24px; font-weight: bold;">สรุปหมายเหตุประจำเดือน</h3>
+                </div>
+                <textarea id="monthlySummaryArea" readonly style="flex-grow: 1; width: 100%; padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-family: 'Kanit', sans-serif; font-size: 13px; line-height: 1.5; background: #f9fafb; resize: none;">${summaryText}</textarea>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button onclick="copyMonthlySummary()" style="flex-grow: 1; background: #10b981; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">📋 คัดลอกข้อความ</button>
+                    <button onclick="document.getElementById('${modalId}').remove()" style="flex-shrink: 0; background: #6b7280; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">ปิด</button>
+                </div>
+            </div>`;
+            document.body.appendChild(summaryModal);
+        }
+        
+        function copyMonthlySummary() {
+            const textArea = document.getElementById('monthlySummaryArea');
+            textArea.select();
+            document.execCommand('copy');
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ คัดลอกแล้ว!';
+            button.style.background = '#059669';
+            setTimeout(() => { button.innerHTML = originalText; button.style.background = '#10b981'; }, 2000);
+        }
+        
+        async function summarizeMonthlyNotes() {
+            const selectedDate = document.getElementById('reportDate').value;
+            if (!selectedDate) {
+                alert("กรุณาเลือกวันที่ก่อนทำการสรุป");
+                return;
+            }
+
+            const loadingModal = createLoadingModal("กำลังรวบรวมข้อมูลหมายเหตุ...");
+            document.body.appendChild(loadingModal);
+
+            const dateObj = new Date(selectedDate + 'T00:00:00');
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let allNotes = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateKey = dateStr.replace(/-/g, '_');
+                
+                // Correctly handle legacy data for notes
+                const snapshot = await database.ref('reports/' + dateKey).once('value');
+                const allData = snapshot.val() || {};
+                let note = null;
+
+                if (allData[currentSite] && allData[currentSite].dailyNotes) {
+                    note = allData[currentSite].dailyNotes;
+                } else if (currentSite === '2ps' && allData.dailyNotes) {
+                     note = allData.dailyNotes;
+                }
+
+                if (note && note.trim() !== '') {
+                    const formattedDay = new Date(year, month, day).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+                    allNotes.push(`- วันที่ ${formattedDay}:\n  ${note.trim()}`);
+                }
+            }
+            
+            loadingModal.remove();
+
+            const monthName = dateObj.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            const summaryText = allNotes.length > 0 ? allNotes.join('\n\n') : 'ไม่มีหมายเหตุสำหรับเดือนนี้';
+            const fullSummaryText = `📝 สรุปหมายเหตุประจำเดือน ${monthName}\n\n${summaryText}`;
+            
+            createSummaryModal(fullSummaryText);
+        }
+
+        // --- Event Listeners and Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            switchTab('2ps', 'report'); // Initialize with default tab
+        });
+    </script>
+</body>
+</html>
