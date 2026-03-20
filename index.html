@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDI Inspection Report</title>
+    <title>2PS REPORT - PDI Inspection Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart.js DataLabels Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Kanit', sans-serif; }
+        /* Add a subtle transition for cards */
         .card-transition {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
@@ -23,71 +22,23 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        /* Active Tab Style */
-        .tab-active {
-            background-color: #2563eb; /* blue-600 */
-            color: white;
-        }
-        .tab-inactive {
-            color: #4b5563; /* gray-600 */
-        }
-        .tab-inactive:hover {
-            color: #2563eb;
-        }
-        /* Custom Scrollbar for Table */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .custom-table-input {
-            min-width: 50px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-        /* Stacked inputs in table cells */
-        .input-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        th {
-            white-space: nowrap;
-        }
-        /* Style for summary rows at the top */
-        .summary-row {
-            background-color: #f9fafb; /* gray-50 */
-            font-weight: 600;
-        }
-        .summary-row td {
-            border-bottom: 1px solid #e5e7eb;
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
-        <div class="text-center mb-8 pt-6">
-            <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">2PS REPORT</h1>
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">2PS REPORT</h1>
         </div>
 
         <!-- Tab Navigation -->
-        <div class="flex flex-wrap justify-center mb-8 gap-2">
-            <div class="bg-white rounded-lg shadow-lg p-1 flex flex-wrap justify-center">
-                <button id="tab-2ps-report" onclick="switchTab('2ps', 'report')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-active">
-                    REPORT 2PS
+        <div class="flex justify-center mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-1">
+                <button id="reportTab" class="px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 bg-blue-600 text-white text-sm sm:text-base">
+                    REPORT
                 </button>
-                <button id="tab-2ps-edit" onclick="switchTab('2ps', 'edit')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
-                    EDIT DATA 2PS
-                </button>
-                <div class="w-px bg-gray-300 mx-1"></div>
-                <button id="tab-28rai-report" onclick="switchTab('28rai', 'report')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
-                    REPORT 28 ไร่
-                </button>
-                <button id="tab-28rai-edit" onclick="switchTab('28rai', 'edit')" class="px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm sm:text-base tab-inactive">
-                    EDIT DATA 28 ไร่
+                <button id="editTab" class="px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-blue-600 text-sm sm:text-base">
+                    EDIT DATA
                 </button>
             </div>
         </div>
@@ -124,7 +75,7 @@
                 <!-- Cars OK Card -->
                 <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 card-transition">
                     <h3 class="text-sm font-medium text-gray-600 mb-2">รถ OK</h3>
-                    <span class="text-3xl font-bold text-green-600" id="carsOK">0</span>
+                    <span class="text-3xl font-bold text-green-600" id="carsOK">2,850</span>
                     <div class="flex items-baseline justify-between mt-1">
                         <p class="text-sm text-gray-500">คัน</p>
                         <p class="text-sm font-medium text-green-600" id="carsOkPercent"></p>
@@ -134,7 +85,7 @@
                 <!-- Remaining Card -->
                 <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 card-transition">
                     <h3 class="text-sm font-medium text-gray-600 mb-2">ขาดอีก</h3>
-                    <span class="text-3xl font-bold text-orange-600" id="remaining">0</span>
+                    <span class="text-3xl font-bold text-orange-600" id="remaining">1,150</span>
                     <div class="flex items-baseline justify-between mt-1">
                         <p class="text-sm text-gray-500">คัน</p>
                         <p class="text-sm font-medium text-orange-600" id="remainingPercent"></p>
@@ -352,18 +303,18 @@
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">สรุป 3 เดือนย้อนหลัง</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="text-center p-4 bg-gray-50 rounded-lg">
-                        <p id="lastMonthLabel" class="text-sm text-gray-600 mb-1">เดือนที่แล้ว</p>
-                        <p id="lastMonthCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-600 mb-1">เดือนที่แล้ว</p>
+                        <p class="text-2xl font-bold text-gray-800">0</p>
                         <p class="text-sm text-gray-500">คัน</p>
                     </div>
                     <div class="text-center p-4 bg-gray-50 rounded-lg">
-                        <p id="twoMonthsAgoLabel" class="text-sm text-gray-600 mb-1">2 เดือนที่แล้ว</p>
-                        <p id="twoMonthsAgoCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-600 mb-1">2 เดือนที่แล้ว</p>
+                        <p class="text-2xl font-bold text-gray-800">0</p>
                         <p class="text-sm text-gray-500">คัน</p>
                     </div>
                     <div class="text-center p-4 bg-gray-50 rounded-lg">
-                        <p id="threeMonthsAgoLabel" class="text-sm text-gray-600 mb-1">3 เดือนที่แล้ว</p>
-                        <p id="threeMonthsAgoCount" class="text-2xl font-bold text-gray-800">0</p>
+                        <p class="text-sm text-gray-600 mb-1">3 เดือนที่แล้ว</p>
+                        <p class="text-2xl font-bold text-gray-800">0</p>
                         <p class="text-sm text-gray-500">คัน</p>
                     </div>
                 </div>
@@ -376,9 +327,9 @@
                     <div>
                         <textarea id="dailyNotes" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="กรอกหมายเหตุประจำวัน..."></textarea>
                     </div>
-                    <div class="flex flex-wrap gap-4">
-                        <button onclick="saveDailyReport()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                            <span>บันทึกหมายเหตุ</span>
+                    <div class="flex space-x-4">
+                        <button onclick="saveDailyReport()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            บันทึกหมายเหตุ
                         </button>
                         <button onclick="sendToLine()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -386,10 +337,6 @@
                             </svg>
                             <span>ส่ง LINE</span>
                         </button>
-                        <button onclick="summarizeMonthlyNotes()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
-                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                           <span>สรุปหมายเหตุประจำเดือน</span>
-                       </button>
                     </div>
                 </div>
             </div>
@@ -475,87 +422,132 @@
                 </div>
             </div>
 
-            <!-- Combined PDI & Repair Section -->
+            <!-- PDI Inspection Section -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-semibold text-gray-800">ข้อมูลการตรวจรถ (PDI & REPAIR)</h3>
-                    <div class="space-x-2">
-                        <button onclick="addNewCarModel('pdi')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                            + เพิ่มรุ่นรถ PDI
-                        </button>
-                         <button onclick="addNewCarModel('repair')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                            + เพิ่มรุ่นรถ REPAIR
-                        </button>
-                    </div>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">รถเข้าตรวจ PDI</h3>
+                    <button onclick="openAddCarModal('pdi')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        เพิ่มรุ่นรถ
+                    </button>
                 </div>
-                
-                <!-- Summary Cards for Edit Section -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center">
-                        <h4 class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-1">Total Target</h4>
-                        <p id="card-total-target" class="text-3xl font-bold text-blue-600">0</p>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 text-center">
-                        <h4 class="text-sm font-bold text-green-600 uppercase tracking-wider mb-1">Total Actual</h4>
-                        <p id="card-total-actual" class="text-3xl font-bold text-green-600">0</p>
-                    </div>
-                    <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 text-center">
-                        <h4 class="text-sm font-bold text-orange-600 uppercase tracking-wider mb-1">Remaining</h4>
-                        <p id="card-remaining" class="text-3xl font-bold text-orange-600">0</p>
-                    </div>
-                </div>
-
-                <!-- Table Wrapper for Combined Data -->
-                <div class="overflow-x-auto scrollbar-hide">
-                    <table class="min-w-full text-left text-sm text-gray-600" id="pdiTable">
-                        <thead class="bg-gray-100 text-gray-700 uppercase">
-                            <tr>
-                                <th class="px-4 py-3 rounded-tl-lg">Model</th>
-                                <th class="px-2 py-3 text-center min-w-[80px] bg-purple-100">P1<br><span class="text-xs font-normal text-gray-500">09:10-10:30</span></th>
-                                <th class="px-2 py-3 text-center min-w-[80px] bg-green-100">P2<br><span class="text-xs font-normal text-gray-500">10:40-12:30</span></th>
-                                <th class="px-2 py-3 text-center min-w-[80px] bg-yellow-100">P3<br><span class="text-xs font-normal text-gray-500">13:30-15:30</span></th>
-                                <th class="px-2 py-3 text-center min-w-[80px] bg-orange-100">P4<br><span class="text-xs font-normal text-gray-500">15:40-18:00</span></th>
-                                <th class="px-2 py-3 text-center min-w-[80px] bg-red-100">P5<br><span class="text-xs font-normal text-gray-500">18:30-20:30</span></th>
-                                <th class="px-2 py-3 text-center font-bold text-blue-600">Total</th>
-                                <th class="px-2 py-3 text-center font-bold text-green-600">Total OK</th>
-                                <th class="px-2 py-3 text-center font-bold text-red-600">Total NG</th>
-                                <th class="px-2 py-3 text-center rounded-tr-lg">Action</th>
-                            </tr>
-                        </thead>
-                        <!-- Summary Rows -->
-                        <tbody id="summaryTableBody"></tbody>
-                        <!-- PDI Rows -->
-                        <tbody id="pdiTableBody"></tbody>
-                        <!-- Repair Rows -->
-                        <tbody id="repairTableBody"></tbody>
-                    </table>
+                <div id="pdiSection" class="space-y-4">
+                    <!-- Rows will be populated by JavaScript -->
                 </div>
             </div>
 
-             <!-- Daily Notes Edit Section -->
+            <!-- Repair Section -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">หมายเหตุประจำวัน</h3>
-                <textarea id="editDailyNotes" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="10" placeholder="กรอกหมายเหตุประจำวัน..." onchange="autoSaveData()"></textarea>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">รถ REPAIR</h3>
+                    <button onclick="openAddCarModal('repair')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        เพิ่มรุ่นรถ
+                    </button>
+                </div>
+                <div id="repairSection" class="space-y-4">
+                    <!-- Rows will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Manage Car Models Button -->
+            <div class="text-center">
+                <button onclick="openManageModelsModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm flex items-center gap-2 mx-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+                    จัดการฐานข้อมูลรุ่นรถ
+                </button>
             </div>
 
             <!-- Save Button -->
-            <div class="text-center">
+            <div class="text-center space-y-2">
                 <button onclick="saveData()" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
-                    บันทึกข้อมูล
+                    💾 บันทึกข้อมูล
                 </button>
+                <div>
+                    <span id="saveStatusBadge" class="text-xs text-gray-400 font-medium"></span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Add Car Model Modal -->
+    <div id="addCarModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" style="backdrop-filter:blur(4px)">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="addCarModalTitle" class="text-xl font-bold text-gray-800">เพิ่มรุ่นรถใหม่</h3>
+                <button onclick="closeAddCarModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">รุ่นรถที่เพิ่มจะถูกบันทึกในฐานข้อมูลและแสดงทุกวัน</p>
+            <input id="newCarModelInput" type="text" placeholder="เช่น ATTO3, SEAL, DOLPHIN..." 
+                class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium uppercase mb-4"
+                onkeydown="if(event.key==='Enter') confirmAddCarModel()">
+            <div class="flex gap-3">
+                <button onclick="closeAddCarModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-colors">ยกเลิก</button>
+                <button id="confirmAddCarBtn" onclick="confirmAddCarModel()" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors">เพิ่มรุ่นรถ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Car Models Modal -->
+    <div id="manageModelsModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" style="backdrop-filter:blur(4px)">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between p-6 border-b">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">จัดการฐานข้อมูลรุ่นรถ</h3>
+                    <p class="text-xs text-gray-500 mt-1">รุ่นรถที่อยู่ในฐานข้อมูลจะแสดงขึ้นมาทุกวันอัตโนมัติ</p>
+                </div>
+                <button onclick="closeManageModelsModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 flex-1 space-y-5">
+                <!-- PDI List -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold text-blue-700 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">PDI</span>
+                            รายการรุ่นรถ PDI
+                        </h4>
+                        <span id="managePdiCount" class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <div id="managePdiList" class="space-y-2"></div>
+                </div>
+                <!-- Repair List -->
+                <div class="border-t pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold text-red-700 flex items-center gap-2">
+                            <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">REPAIR</span>
+                            รายการรุ่นรถ REPAIR
+                        </h4>
+                        <span id="manageRepairCount" class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <div id="manageRepairList" class="space-y-2"></div>
+                </div>
+                <!-- Reset to default -->
+                <div class="border-t pt-4">
+                    <button onclick="resetCarModelsToDefault()" class="w-full text-xs text-gray-400 hover:text-red-500 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                        🔄 รีเซ็ตกลับค่าเริ่มต้น (DOLPHIN, SEALION 6, ATTO3, SEAL 5)
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 border-t">
+                <button onclick="closeManageModelsModal()" class="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toastNotif" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium z-[999] transition-all duration-300"></div>
+
     <script>
         // Store chart instances globally to destroy them before re-rendering
-        let dailyChartInstance = null;
+        window.myDailyChart = null;
         window.myMonthlyModelOkBarChart = null;
         window.myMonthlyModelNgBarChart = null;
         let isUpdatingTotals = false; // Flag to prevent concurrent updates
-        let currentSite = '2ps'; // Default site
-        let currentView = 'report'; // Default view
-
+        
         // Firebase Configuration
         const firebaseConfig = {
             databaseURL: "https://pdireportv2-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -565,65 +557,27 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // --- UI Elements ---
+        const reportTab = document.getElementById('reportTab');
+        const editTab = document.getElementById('editTab');
+        const reportContent = document.getElementById('reportContent');
+        const editContent = document.getElementById('editContent');
+
         // --- Tab Switching ---
-        function switchTab(site, view) {
-            currentSite = site;
-            currentView = view;
+        reportTab.addEventListener('click', () => {
+            reportTab.className = 'px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 bg-blue-600 text-white text-sm sm:text-base';
+            editTab.className = 'px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-blue-600 text-sm sm:text-base';
+            reportContent.classList.remove('hidden');
+            editContent.classList.add('hidden');
+            updateMonthlyTotalsFromHistoricalData();
+        });
 
-            // Update Tab Styles
-            document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
-                btn.classList.remove('tab-active');
-                btn.classList.add('tab-inactive');
-                btn.style.backgroundColor = '';
-                btn.style.color = '#4b5563';
-            });
-            
-            const activeTabId = `tab-${site}-${view}`;
-            const activeBtn = document.getElementById(activeTabId);
-            if (activeBtn) {
-                activeBtn.classList.remove('tab-inactive');
-                activeBtn.classList.add('tab-active');
-                activeBtn.style.backgroundColor = '#2563eb';
-                activeBtn.style.color = 'white';
-            }
-
-            // Update Header (Fixed to 2PS REPORT as requested)
-            const mainTitle = document.getElementById('mainTitle');
-            mainTitle.textContent = site === '2ps' ? '2PS REPORT' : '28 ไร่ REPORT';
-
-            // Show/Hide Content
-            const reportContent = document.getElementById('reportContent');
-            const editContent = document.getElementById('editContent');
-
-            if (view === 'report') {
-                reportContent.classList.remove('hidden');
-                editContent.classList.add('hidden');
-            } else {
-                reportContent.classList.add('hidden');
-                editContent.classList.remove('hidden');
-            }
-
-            // Refresh Data
-            const selectedDate = document.getElementById(view === 'report' ? 'reportDate' : 'selectedDate').value;
-            if (selectedDate) {
-                 // Sync date pickers
-                 document.getElementById('reportDate').value = selectedDate;
-                 document.getElementById('selectedDate').value = selectedDate;
-                 
-                 const dateObj = new Date(selectedDate + 'T00:00:00');
-                 loadAndSyncDataForDate(selectedDate);
-                 updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
-            } else {
-                 // Default to today if no date selected
-                 const today = new Date().toISOString().split('T')[0];
-                 document.getElementById('reportDate').value = today;
-                 document.getElementById('selectedDate').value = today;
-                 const dateObj = new Date();
-                 loadAndSyncDataForDate(today);
-                 updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
-            }
-        }
-
+        editTab.addEventListener('click', () => {
+            editTab.className = 'px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 bg-blue-600 text-white text-sm sm:text-base';
+            reportTab.className = 'px-4 sm:px-8 py-3 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-blue-600 text-sm sm:text-base';
+            editContent.classList.remove('hidden');
+            reportContent.classList.add('hidden');
+        });
 
         // --- Data Handling and Display ---
 
@@ -637,24 +591,11 @@
 
             const dateKey = date.replace(/-/g, '_');
             database.ref('reports/' + dateKey).once('value').then(snapshot => {
-                const data = snapshot.val() || {};
-                let safeData = null;
-
-                // Fallback logic for legacy data structure
-                if (data[currentSite]) {
-                     safeData = data[currentSite];
-                } else if (currentSite === '2ps' && (data.pdiData || data.repairData || data.dailyNotes || data.monthlyTarget)) {
-                     safeData = data;
-                }
-
-                safeData = safeData || { pdiData: [], repairData: [], dailyNotes: '' };
-                
+                const data = snapshot.val();
+                const safeData = data || { pdiData: [], repairData: [], dailyNotes: '' };
                 updateDailyReportView(safeData);
-                // Populate Tables with targets
-                populateEditSections(safeData.pdiData, safeData.repairData, safeData.pdiTargets, safeData.repairTargets);
+                populateEditSections(safeData.pdiData, safeData.repairData);
                 updateReportTabSummary(safeData);
-                // Update Edit Notes
-                document.getElementById('editDailyNotes').value = safeData.dailyNotes || '';
             });
         }
 
@@ -684,24 +625,9 @@
 
             if (dailyData.pdiData) {
                 dailyData.pdiData.forEach(m => {
-                    // P1-P5 now have dedicated Total keys if saved with new format
-                    // Logic: prefer p1_total, fallback to p1
-                    const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
-                    const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
-                    const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
-                    const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
-                    const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
-                    
-                    let itemTotal = 0;
-                    if (m.p1 !== undefined || m.p1_total !== undefined) {
-                         itemTotal = p1 + p2 + p3 + p4 + p5;
-                    } else {
-                        itemTotal = m.pdi || 0;
-                    }
-
-                    const total = itemTotal;
+                    const total = m.pdi || 0;
                     const ok = m.ok || 0;
-                    const ng = Math.max(0, total - ok);
+                    const ng = m.ng || 0;
                     
                     pdiTotal += total;
                     pdiOk += ok;
@@ -729,22 +655,9 @@
             
             if (dailyData.repairData) {
                 dailyData.repairData.forEach(m => {
-                    const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
-                    const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
-                    const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
-                    const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
-                    const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
-
-                    let itemTotal = 0;
-                    if (m.p1 !== undefined || m.p1_total !== undefined) {
-                         itemTotal = p1 + p2 + p3 + p4 + p5;
-                    } else {
-                         itemTotal = m.repair || 0;
-                    }
-
-                    const total = itemTotal;
+                    const total = m.repair || 0;
                     const ok = m.ok || 0;
-                    const ng = Math.max(0, total - ok);
+                    const ng = m.ng || 0;
                     
                     repairTotal += total;
                     repairOk += ok;
@@ -787,9 +700,9 @@
             const totalModelData = { ...pdiModels };
             Object.keys(repairModels).forEach(model => {
                 if(!totalModelData[model]) totalModelData[model] = {total: 0, ok: 0, ng: 0};
-                totalModelData[model].total += (repairModels[model]?.total || 0);
-                totalModelData[model].ok += (repairModels[model]?.ok || 0);
-                totalModelData[model].ng += (repairModels[model]?.ng || 0);
+                totalModelData[model].total += repairModels[model].total;
+                totalModelData[model].ok += repairModels[model].ok;
+                totalModelData[model].ng += repairModels[model].ng;
             });
 
             let totalModelHtml = '';
@@ -803,26 +716,13 @@
         }
         
         async function updateMonthlyTotalsFromHistoricalData() {
-             const selectedDate = document.getElementById('reportDate').value;
-             if (!selectedDate) return;
-             const dateObj = new Date(selectedDate + 'T00:00:00');
-             updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
-        }
-
-        async function updateTotalsForMonth(year, month) {
             if (isUpdatingTotals) return; // Prevent re-entry
             isUpdatingTotals = true;
             try {
-                // --- NEW: Fetch Monthly Target First ---
-                const monthKey = `${year}_${month + 1}`;
-                const targetSnapshot = await database.ref(`monthly_targets/${monthKey}/${currentSite}`).once('value');
-                const savedTarget = targetSnapshot.val();
-                
-                if (savedTarget) {
-                    document.getElementById('monthlyTarget').textContent = parseInt(savedTarget).toLocaleString();
-                }
-                
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const currentDate = new Date();
+                const currentMonth = currentDate.getMonth();
+                const currentYear = currentDate.getFullYear();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
                 
                 let monthlyOkTotal = 0, totalPdiAndRepairInput = 0, daysWithData = 0;
                 let monthlyPdiOk = 0, monthlyPdiNg = 0, monthlyPdiTotalInput = 0;
@@ -830,25 +730,11 @@
                 const modelsToRemove = ['TANG EV', 'YUAN PLUS']; // Models to exclude
                 const modelDailyData = {};
 
-                // Prepare all fetch promises
-                const promises = [];
                 for (let day = 1; day <= daysInMonth; day++) {
-                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const dateKey = dateStr.replace(/-/g, '_');
-                    promises.push(database.ref('reports/' + dateKey).once('value'));
-                }
-                
-                const snapshots = await Promise.all(promises);
-
-                snapshots.forEach((snapshot, index) => {
-                    const day = index + 1;
-                    const allData = snapshot.val() || {};
-                    let data = null;
-                    if (allData[currentSite]) {
-                        data = allData[currentSite];
-                    } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
-                        data = allData;
-                    }
+                    const snapshot = await database.ref('reports/' + dateKey).once('value');
+                    const data = snapshot.val();
 
                     if (data) {
                         let dayPdiInput = 0, dayRepairInput = 0;
@@ -857,21 +743,9 @@
                                 const modelName = m.model.toUpperCase();
                                 if (modelsToRemove.includes(modelName)) return;
 
-                                const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
-                                const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
-                                const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
-                                const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
-                                const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
-
-                                let pdi = 0;
-                                if (m.p1 !== undefined || m.p1_total !== undefined) {
-                                     pdi = p1 + p2 + p3 + p4 + p5;
-                                } else {
-                                     pdi = m.pdi || 0;
-                                }
-
                                 const ok = m.ok || 0;
-                                const ng = Math.max(0, pdi - ok);
+                                const ng = m.ng || 0;
+                                const pdi = m.pdi || 0;
                                 
                                 if (!modelDailyData[modelName]) modelDailyData[modelName] = { ok: Array(daysInMonth).fill(0), ng: Array(daysInMonth).fill(0) };
                                 modelDailyData[modelName].ok[day - 1] += ok;
@@ -889,21 +763,9 @@
                                 const modelName = m.model.toUpperCase();
                                 if (modelsToRemove.includes(modelName)) return;
                                 
-                                const p1 = m.p1_total !== undefined ? m.p1_total : (m.p1 || 0);
-                                const p2 = m.p2_total !== undefined ? m.p2_total : (m.p2 || 0);
-                                const p3 = m.p3_total !== undefined ? m.p3_total : (m.p3 || 0);
-                                const p4 = m.p4_total !== undefined ? m.p4_total : (m.p4 || 0);
-                                const p5 = m.p5_total !== undefined ? m.p5_total : (m.p5 || 0);
-
-                                let repair = 0;
-                                if (m.p1 !== undefined || m.p1_total !== undefined) {
-                                     repair = p1 + p2 + p3 + p4 + p5;
-                                } else {
-                                     repair = m.repair || 0;
-                                }
-
                                 const ok = m.ok || 0;
-                                const ng = Math.max(0, repair - ok);
+                                const ng = m.ng || 0;
+                                const repair = m.repair || 0;
                             
                                 if (!modelDailyData[modelName]) modelDailyData[modelName] = { ok: Array(daysInMonth).fill(0), ng: Array(daysInMonth).fill(0) };
                                 modelDailyData[modelName].ok[day - 1] += ok;
@@ -919,7 +781,7 @@
                         totalPdiAndRepairInput += (dayPdiInput + dayRepairInput);
                         if ((dayPdiInput + dayRepairInput) > 0) daysWithData++;
                     }
-                });
+                }
 
                 const modelCumulativeData = JSON.parse(JSON.stringify(modelDailyData));
                 Object.keys(modelCumulativeData).forEach(model => {
@@ -961,463 +823,735 @@
                 document.getElementById('totalOkPercent').textContent = (grandTotal > 0 ? (totalOk / grandTotal * 100).toFixed(1) : '0.0') + '%';
                 document.getElementById('totalNgPercent').textContent = (grandTotal > 0 ? (totalNg / grandTotal * 100).toFixed(1) : '0.0') + '%';
 
-                createMonthlyModelBarCharts(modelCumulativeData, year, month);
-                updateChartSummaries(modelCumulativeData, year, month);
-                createDailyChart(year, month);
-                update3MonthSummary(year, month);
+                createMonthlyModelBarCharts(modelCumulativeData);
+                updateChartSummaries(modelCumulativeData);
+                createDailyChart();
             } finally {
                 isUpdatingTotals = false;
             }
         }
 
-        function populateEditSections(pdiData = [], repairData = [], pdiTargets = {}, repairTargets = {}) {
-            const summaryTableBody = document.getElementById('summaryTableBody');
-            const pdiSectionDiv = document.getElementById('pdiTableBody');
-            const repairSectionDiv = document.getElementById('repairTableBody');
-            
-            summaryTableBody.innerHTML = '';
+        // --- Car Model Database (Firebase) ---
+        const DEFAULT_MODELS = ['DOLPHIN', 'SEALION 6', 'ATTO3', 'SEAL 5'];
+        const MODELS_TO_EXCLUDE = ['TANG EV', 'YUAN PLUS'];
+        let _currentAddSection = 'pdi'; // track which section modal was opened for
+
+        // Firebase stores arrays as objects {0: "val", 1: "val"} — normalize back to array
+        function firebaseValToArray(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.filter(Boolean);
+            if (typeof val === 'object') return Object.values(val).filter(Boolean);
+            return [];
+        }
+
+        async function getCarModelsFromDB() {
+            const snap = await database.ref('carModels').once('value');
+            const val = snap.val();
+            if (val) {
+                const pdi = firebaseValToArray(val.pdi);
+                const repair = firebaseValToArray(val.repair);
+                if (pdi.length > 0 || repair.length > 0) {
+                    return { pdi, repair };
+                }
+            }
+            // First time: seed with defaults
+            const seed = { pdi: [...DEFAULT_MODELS], repair: [...DEFAULT_MODELS] };
+            await database.ref('carModels').set(seed);
+            return seed;
+        }
+
+        async function saveCarModelsToDB(pdiModels, repairModels) {
+            // Use object keys to avoid Firebase sparse-array issues
+            const pdiObj = {}, repairObj = {};
+            pdiModels.forEach((m, i) => { pdiObj[i] = m; });
+            repairModels.forEach((m, i) => { repairObj[i] = m; });
+            await database.ref('carModels').set({ pdi: pdiObj, repair: repairObj });
+        }
+
+        async function populateEditSections(pdiData = [], repairData = []) {
+            const pdiSectionDiv = document.getElementById('pdiSection');
+            const repairSectionDiv = document.getElementById('repairSection');
+            pdiSectionDiv.innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">กำลังโหลด...</div>';
+            repairSectionDiv.innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">กำลังโหลด...</div>';
+
+            const carModels = await getCarModelsFromDB();
+            const dbPdiModels = (carModels.pdi || DEFAULT_MODELS).filter(m => !MODELS_TO_EXCLUDE.includes(m.toUpperCase()));
+            const dbRepairModels = (carModels.repair || DEFAULT_MODELS).filter(m => !MODELS_TO_EXCLUDE.includes(m.toUpperCase()));
+
+            const filteredPdiData = pdiData.filter(d => !MODELS_TO_EXCLUDE.includes(d.model.toUpperCase()));
+            const filteredRepairData = repairData.filter(d => !MODELS_TO_EXCLUDE.includes(d.model.toUpperCase()));
+
+            // Merge: DB models + any extra from saved daily data
+            const allPdiModels = new Set([...dbPdiModels.map(m => m.toUpperCase()), ...filteredPdiData.map(d => d.model.toUpperCase())]);
+            const allRepairModels = new Set([...dbRepairModels.map(m => m.toUpperCase()), ...filteredRepairData.map(d => d.model.toUpperCase())]);
+
             pdiSectionDiv.innerHTML = '';
             repairSectionDiv.innerHTML = '';
 
-            // 1. Summary Rows (Target, Actual, Remaining) - ใช้ pdiTargets เป็นหลัก (Global Target)
-            summaryTableBody.innerHTML = createSummarySection('pdi', pdiTargets);
-
-            // 2. PDI Section
-            // Add Header Row for PDI
-            const pdiHeaderRow = document.createElement('tr');
-            pdiHeaderRow.className = "bg-blue-100";
-            pdiHeaderRow.innerHTML = `<td colspan="10" class="font-bold text-center py-2 text-blue-800">รถเข้าตรวจ PDI</td>`;
-            pdiSectionDiv.appendChild(pdiHeaderRow);
-
-            const modelsToRemove = ['TANG EV', 'YUAN PLUS'];
-            const defaultModels = ['DOLPHIN', 'SEALION 6', 'ATTO3', 'SEAL 5'];
-            
-            const filteredPdiData = pdiData.filter(d => !modelsToRemove.includes(d.model.toUpperCase()));
-            const allPdiModels = new Set([...defaultModels, ...filteredPdiData.map(d => d.model.toUpperCase())]);
             allPdiModels.forEach(modelName => {
-                const modelData = filteredPdiData.find(d => d.model.toUpperCase() === modelName.toUpperCase()) || {};
-                pdiSectionDiv.appendChild(createPdiRow(modelName, modelData));
+                const modelData = filteredPdiData.find(d => d.model.toUpperCase() === modelName) || {};
+                pdiSectionDiv.appendChild(createCarModelRow('pdi', modelName, modelData));
             });
 
-            // 3. Repair Section
-            // Add Header Row for Repair
-            const repairHeaderRow = document.createElement('tr');
-            repairHeaderRow.className = "bg-red-100";
-            repairHeaderRow.innerHTML = `<td colspan="10" class="font-bold text-center py-2 text-red-800">รถ REPAIR</td>`;
-            repairSectionDiv.appendChild(repairHeaderRow);
-            
-            const filteredRepairData = repairData.filter(d => !modelsToRemove.includes(d.model.toUpperCase()));
-            const allRepairModels = new Set([...defaultModels, ...filteredRepairData.map(d => d.model.toUpperCase())]);
             allRepairModels.forEach(modelName => {
-                const modelData = filteredRepairData.find(d => d.model.toUpperCase() === modelName.toUpperCase()) || {};
-                repairSectionDiv.appendChild(createRepairRow(modelName, modelData));
+                const modelData = filteredRepairData.find(d => d.model.toUpperCase() === modelName) || {};
+                repairSectionDiv.appendChild(createCarModelRow('repair', modelName, modelData));
             });
-
-            // 4. Calculate Initial Values
-            updateSummaryValues('pdi'); // Calculates Global Totals
 
             updateEditTabSummary();
         }
 
-        function createSummarySection(type, targets = {}) {
-            const targetVals = [
-                targets.p1 || 0,
-                targets.p2 || 0,
-                targets.p3 || 0,
-                targets.p4 || 0,
-                targets.p5 || 0
-            ];
-
-            const pColors = ['bg-purple-100', 'bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-100'];
-
-            const createRow = (label, isInput, rowClass, idPrefix) => {
-                let cells = `<td class="px-4 py-3 text-right text-gray-700 font-bold">${label}</td>`;
-                targetVals.forEach((val, idx) => {
-                    const cellId = `${type}-${idPrefix}-p${idx+1}`;
-                    const colorClass = pColors[idx];
-                    if (isInput) {
-                        cells += `<td class="px-2 py-3 text-center ${colorClass}"><input type="number" id="${cellId}" class="w-full p-1 border border-gray-300 rounded text-center font-bold text-gray-700" value="${val}" onchange="onTargetChange('${type}')"></td>`;
-                    } else {
-                        // For Actual and Balance, we use text spans/cells
-                        // We initialize with 0 or calculate later. Here we put placeholder.
-                        cells += `<td id="${cellId}" class="px-2 py-3 text-center font-bold text-lg ${colorClass}">0</td>`;
-                    }
-                });
-                
-                // Add Total Cell for the summary row
-                const totalId = `${type}-${idPrefix}-total`;
-                cells += `<td id="${totalId}" class="px-2 py-3 text-center font-bold text-lg ${rowClass}">0</td>`;
-                
-                cells += `<td colspan="3"></td>`; // Remaining Spacers (Total OK, Total NG, Action)
-                return `<tr class="summary-row ${rowClass}">${cells}</tr>`;
-            };
-
-            return `
-                ${createRow('Total Target', true, '', 'target')}
-                ${createRow('Total Actual', false, 'text-blue-600', 'actual')}
-                ${createRow('Remaining', false, 'text-orange-600', 'balance')}
-            `;
+        // --- Add Car Modal ---
+        function openAddCarModal(section) {
+            _currentAddSection = section;
+            const modal = document.getElementById('addCarModal');
+            const title = document.getElementById('addCarModalTitle');
+            const btn = document.getElementById('confirmAddCarBtn');
+            const input = document.getElementById('newCarModelInput');
+            title.textContent = section === 'pdi' ? 'เพิ่มรุ่นรถ PDI ใหม่' : 'เพิ่มรุ่นรถ REPAIR ใหม่';
+            btn.className = `flex-1 px-4 py-3 ${section === 'pdi' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-xl font-medium transition-colors`;
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 100);
         }
 
-        function createPdiRow(modelName, data) {
-            const tr = document.createElement('tr');
-            tr.className = "border-b hover:bg-gray-50 transition-colors model-row"; // Added model-row class
+        function closeAddCarModal() {
+            document.getElementById('addCarModal').classList.add('hidden');
+        }
 
-            // Helper to create cell
-            const createCell = (total, ok) => `
-                <div class="input-stack">
-                    <input type="number" class="custom-table-input w-full p-1 border border-blue-300 rounded focus:ring-blue-500 focus:border-blue-500 text-blue-800" value="${total}" onchange="calculatePdiTotal(this)">
-                    <input type="number" class="custom-table-input w-full p-1 border border-green-300 rounded focus:ring-green-500 focus:border-green-500 text-green-800" value="${ok}" onchange="calculatePdiTotal(this)">
-                </div>
-            `;
+        async function confirmAddCarModel() {
+            const input = document.getElementById('newCarModelInput');
+            const carModel = input.value.trim().toUpperCase();
+            if (!carModel) { input.focus(); return; }
 
-            // Prepare values (legacy support: p1 -> p1_total, 0 OK if not present)
-            const p1_total = data.p1_total !== undefined ? data.p1_total : (data.p1 || 0);
-            const p1_ok = data.p1_ok || 0;
-            
-            const p2_total = data.p2_total !== undefined ? data.p2_total : (data.p2 || 0);
-            const p2_ok = data.p2_ok || 0;
-
-            const p3_total = data.p3_total !== undefined ? data.p3_total : (data.p3 || 0);
-            const p3_ok = data.p3_ok || 0;
-
-            const p4_total = data.p4_total !== undefined ? data.p4_total : (data.p4 || 0);
-            const p4_ok = data.p4_ok || 0;
-
-            const p5_total = data.p5_total !== undefined ? data.p5_total : (data.p5 || 0);
-            const p5_ok = data.p5_ok || 0;
-
-            // Check legacy single OK
-            if (data.ok && (p1_ok+p2_ok+p3_ok+p4_ok+p5_ok) === 0 && data.ok > 0) {
-                 // Don't auto-distribute legacy OK, user must fix. Just display what we have.
+            // Check duplicate in current section
+            const sectionDiv = document.getElementById(_currentAddSection + 'Section');
+            const existing = Array.from(sectionDiv.querySelectorAll('.car-model-row span')).map(s => s.textContent.trim().toUpperCase());
+            if (existing.includes(carModel)) {
+                showToast(`⚠️ รุ่น "${carModel}" มีอยู่แล้ว`);
+                return;
             }
 
-            const total = p1_total + p2_total + p3_total + p4_total + p5_total;
-            const totalOk = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
-            const ng = Math.max(0, total - totalOk);
-
-            tr.innerHTML = `
-                <td class="px-4 py-3 font-medium text-gray-900">${modelName.toUpperCase()}</td>
-                <td class="px-2 py-3 text-center bg-purple-100">${createCell(p1_total, p1_ok)}</td>
-                <td class="px-2 py-3 text-center bg-green-100">${createCell(p2_total, p2_ok)}</td>
-                <td class="px-2 py-3 text-center bg-yellow-100">${createCell(p3_total, p3_ok)}</td>
-                <td class="px-2 py-3 text-center bg-orange-100">${createCell(p4_total, p4_ok)}</td>
-                <td class="px-2 py-3 text-center bg-red-100">${createCell(p5_total, p5_ok)}</td>
-                <td class="px-2 py-3 text-center font-bold text-blue-600 text-lg"><span class="pdi-total">${total}</span></td>
-                <td class="px-2 py-3 text-center font-bold text-green-600 text-lg"><span class="pdi-ok">${totalOk}</span></td>
-                <td class="px-2 py-3 text-center font-bold text-red-600 text-lg"><span class="pdi-ng">${ng}</span></td>
-                <td class="px-2 py-3 text-center">
-                    <button onclick="removePdiRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </td>
-            `;
-            return tr;
-        }
-
-        function createRepairRow(modelName, data) {
-            const tr = document.createElement('tr');
-            tr.className = "border-b hover:bg-gray-50 transition-colors model-row"; // Added model-row class
-
-             const createCell = (total, ok) => `
-                <div class="input-stack">
-                    <input type="number" class="custom-table-input w-full p-1 border border-blue-300 rounded focus:ring-blue-500 focus:border-blue-500 text-blue-800" value="${total}" onchange="calculateRepairTotal(this)">
-                    <input type="number" class="custom-table-input w-full p-1 border border-green-300 rounded focus:ring-green-500 focus:border-green-500 text-green-800" value="${ok}" onchange="calculateRepairTotal(this)">
-                </div>
-            `;
-
-             // Prepare values
-            const p1_total = data.p1_total !== undefined ? data.p1_total : (data.p1 || 0);
-            const p1_ok = data.p1_ok || 0;
-            
-            const p2_total = data.p2_total !== undefined ? data.p2_total : (data.p2 || 0);
-            const p2_ok = data.p2_ok || 0;
-
-            const p3_total = data.p3_total !== undefined ? data.p3_total : (data.p3 || 0);
-            const p3_ok = data.p3_ok || 0;
-
-            const p4_total = data.p4_total !== undefined ? data.p4_total : (data.p4 || 0);
-            const p4_ok = data.p4_ok || 0;
-
-            const p5_total = data.p5_total !== undefined ? data.p5_total : (data.p5 || 0);
-            const p5_ok = data.p5_ok || 0;
-
-            // Legacy fallback for repair totals if p1..p5 are empty
-            let initialTotal = 0;
-            if ((p1_total+p2_total+p3_total+p4_total+p5_total) === 0 && data.repair) {
-                // Don't auto distribute, just keep 0 so user inputs it correctly
+            // Save to Firebase carModels DB
+            const carModels = await getCarModelsFromDB();
+            const key = _currentAddSection; // 'pdi' or 'repair'
+            const list = (carModels[key] || []).map(m => m.toUpperCase());
+            if (!list.includes(carModel)) {
+                list.push(carModel);
+                carModels[key] = list;
+                await saveCarModelsToDB(carModels.pdi || [], carModels.repair || []);
             }
 
-            const total = p1_total + p2_total + p3_total + p4_total + p5_total;
-            const totalOk = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
-            const ng = Math.max(0, total - totalOk);
-
-            tr.innerHTML = `
-                <td class="px-4 py-3 font-medium text-gray-900">${modelName.toUpperCase()}</td>
-                <td class="px-2 py-3 text-center bg-purple-100">${createCell(p1_total, p1_ok)}</td>
-                <td class="px-2 py-3 text-center bg-green-100">${createCell(p2_total, p2_ok)}</td>
-                <td class="px-2 py-3 text-center bg-yellow-100">${createCell(p3_total, p3_ok)}</td>
-                <td class="px-2 py-3 text-center bg-orange-100">${createCell(p4_total, p4_ok)}</td>
-                <td class="px-2 py-3 text-center bg-red-100">${createCell(p5_total, p5_ok)}</td>
-                <td class="px-2 py-3 text-center font-bold text-blue-600 text-lg"><span class="repair-total">${total}</span></td>
-                <td class="px-2 py-3 text-center font-bold text-green-600 text-lg"><span class="repair-ok">${totalOk}</span></td>
-                <td class="px-2 py-3 text-center font-bold text-red-600 text-lg"><span class="repair-ng">${ng}</span></td>
-                <td class="px-2 py-3 text-center">
-                    <button onclick="removeRepairRow(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </td>
-            `;
-            return tr;
+            // Add row to current UI
+            sectionDiv.appendChild(createCarModelRow(_currentAddSection, carModel));
+            updateEditTabSummary();
+            closeAddCarModal();
+            showToast(`✅ เพิ่มรุ่น "${carModel}" ในฐานข้อมูลแล้ว`);
         }
 
-        function updateSummaryValues(type) {
-            // type is 'pdi' mainly, but we scan ALL .model-row to get total actual
-            // This function now calculates Global Totals (PDI + Repair)
-            const tableId = 'pdiTable'; // Combined Table ID
-            let actuals = [0, 0, 0, 0, 0];
-            
-            // Sum up actuals from ALL model rows in the Combined Table
-            document.querySelectorAll(`#${tableId} tr.model-row`).forEach(row => {
-                const inputs = row.querySelectorAll('input[type="number"]');
-                for(let i=0; i<5; i++) {
-                    actuals[i] += parseInt(inputs[i*2].value) || 0; // Summing Totals (index 0, 2, 4...)
+        // --- Manage Models Modal ---
+        async function openManageModelsModal() {
+            const modal = document.getElementById('manageModelsModal');
+            modal.classList.remove('hidden');
+            await renderManageModelsList();
+        }
+
+        function closeManageModelsModal() {
+            document.getElementById('manageModelsModal').classList.add('hidden');
+            // Reload sections to reflect any changes
+            const selectedDate = document.getElementById('selectedDate').value;
+            if (selectedDate) loadAndSyncDataForDate(selectedDate);
+        }
+
+        async function renderManageModelsList() {
+            const pdiList = document.getElementById('managePdiList');
+            const repairList = document.getElementById('manageRepairList');
+            pdiList.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">กำลังโหลด...</p>';
+            repairList.innerHTML = '';
+
+            const carModels = await getCarModelsFromDB();
+
+            function renderList(container, models, section) {
+                if (!models || models.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">ไม่มีรุ่นรถ</p>';
+                    return;
+                }
+                const color = section === 'pdi' ? 'blue' : 'red';
+                container.innerHTML = models.map((m) => `
+                    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <span class="font-medium text-gray-800 text-sm flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-${color}-400 inline-block"></span>
+                            ${m.toUpperCase()}
+                        </span>
+                        <button onclick="deleteCarModelFromDB('${section}', '${m.toUpperCase().replace(/'/g, "\\'")}')"
+                            class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors flex items-center gap-1 text-xs" title="ลบออกจากฐานข้อมูล">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            ลบ
+                        </button>
+                    </div>`).join('');
+            }
+
+            renderList(pdiList, carModels.pdi, 'pdi');
+            renderList(repairList, carModels.repair, 'repair');
+
+            // Update count badges
+            const pdiCount = document.getElementById('managePdiCount');
+            const repairCount = document.getElementById('manageRepairCount');
+            if (pdiCount) pdiCount.textContent = carModels.pdi.length + ' รุ่น';
+            if (repairCount) repairCount.textContent = carModels.repair.length + ' รุ่น';
+        }
+
+        async function deleteCarModelFromDB(section, modelName) {
+            if (!confirm(`ลบรุ่น "${modelName}" ออกจากฐานข้อมูลถาวร?\n\nจะไม่แสดงในวันต่อๆ ไปอีก (ข้อมูลที่บันทึกไว้แล้วจะยังคงอยู่)`)) return;
+            const carModels = await getCarModelsFromDB();
+            carModels[section] = (carModels[section] || []).filter(m => m.toUpperCase() !== modelName);
+            await saveCarModelsToDB(carModels.pdi || [], carModels.repair || []);
+            showToast(`🗑️ ลบ "${modelName}" ออกจากฐานข้อมูลแล้ว`);
+            await renderManageModelsList();
+        }
+
+        async function resetCarModelsToDefault() {
+            if (!confirm('รีเซ็ตรายการรุ่นรถกลับเป็นค่าเริ่มต้น?\n\nDOLPHIN, SEALION 6, ATTO3, SEAL 5\n\nรุ่นที่เพิ่มเองทั้งหมดจะถูกลบออก')) return;
+            await saveCarModelsToDB([...DEFAULT_MODELS], [...DEFAULT_MODELS]);
+            showToast('🔄 รีเซ็ตฐานข้อมูลรุ่นรถเรียบร้อยแล้ว');
+            await renderManageModelsList();
+        }
+
+        // --- Toast ---
+        function showToast(msg, duration = 2800) {
+            const t = document.getElementById('toastNotif');
+            t.textContent = msg;
+            t.classList.remove('hidden');
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => {
+                t.style.opacity = '0';
+                setTimeout(() => t.classList.add('hidden'), 300);
+            }, duration);
+        }
+
+        // --- Charting ---
+        function updateChartSummaries(modelCumulativeData) {
+            const okSummaryDiv = document.getElementById('okChartSummary');
+            const ngSummaryDiv = document.getElementById('ngChartSummary');
+            if (!okSummaryDiv || !ngSummaryDiv) return;
+
+            let totalOk = 0;
+            let okBreakdown = [];
+            let totalNg = 0;
+            let ngBreakdown = [];
+
+            const lastDayIndex = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - 1;
+
+            const sortedModels = Object.keys(modelCumulativeData).sort();
+
+            sortedModels.forEach(model => {
+                const modelOk = modelCumulativeData[model].ok[lastDayIndex] || 0;
+                const modelNg = modelCumulativeData[model].ng[lastDayIndex] || 0;
+
+                totalOk += modelOk;
+                totalNg += modelNg;
+
+                if (modelOk > 0) {
+                    okBreakdown.push(`${model}: ${modelOk}`);
+                }
+                if (modelNg > 0) {
+                    ngBreakdown.push(`${model}: ${modelNg}`);
                 }
             });
 
-            let totalTarget = 0;
-            let totalActual = 0;
-            let totalBalance = 0;
-
-            // Get Targets (using 'pdi' prefix as main targets) and Calculate Balance
-            for(let i=0; i<5; i++) {
-                const pIndex = i + 1;
-                const targetInput = document.getElementById(`pdi-target-p${pIndex}`);
-                const actualCell = document.getElementById(`pdi-actual-p${pIndex}`);
-                const balanceCell = document.getElementById(`pdi-balance-p${pIndex}`);
-
-                if (targetInput && actualCell && balanceCell) {
-                    const targetVal = parseInt(targetInput.value) || 0;
-                    const actualVal = actuals[i];
-                    const balanceVal = targetVal - actualVal;
-
-                    actualCell.textContent = actualVal;
-                    balanceCell.textContent = balanceVal;
-
-                    // Accumulate Totals
-                    totalTarget += targetVal;
-                    totalActual += actualVal;
-                    totalBalance += balanceVal;
-                }
-            }
-
-            // Update Total Columns in Summary Rows (Keep for structure)
-            const targetTotalCell = document.getElementById(`pdi-target-total`);
-            const actualTotalCell = document.getElementById(`pdi-actual-total`);
-            const balanceTotalCell = document.getElementById(`pdi-balance-total`);
-
-            if (targetTotalCell) targetTotalCell.textContent = totalTarget;
-            if (actualTotalCell) actualTotalCell.textContent = totalActual;
-            if (balanceTotalCell) balanceTotalCell.textContent = totalBalance;
-            
-            // --- Update New Summary Cards ---
-            const cardTarget = document.getElementById('card-total-target');
-            const cardActual = document.getElementById('card-total-actual');
-            const cardRemaining = document.getElementById('card-remaining');
-            
-            if (cardTarget) cardTarget.textContent = totalTarget.toLocaleString();
-            if (cardActual) cardActual.textContent = totalActual.toLocaleString();
-            if (cardRemaining) cardRemaining.textContent = totalBalance.toLocaleString();
-        }
-
-        function onTargetChange(type) {
-            updateSummaryValues(type); // type is 'pdi' usually
-            autoSaveData();
-        }
-
-        function calculatePdiTotal(element) {
-            const row = element.closest('tr');
-            const inputs = row.querySelectorAll('input[type="number"]');
-            // 0: P1_Tot, 1: P1_OK, 2: P2_Tot, 3: P2_OK ... 9: P5_OK
-            
-            let total = 0;
-            let totalOk = 0;
-            
-            for(let i=0; i<5; i++) {
-                total += parseInt(inputs[i*2].value) || 0;
-                totalOk += parseInt(inputs[i*2+1].value) || 0;
-            }
-
-            const ng = Math.max(0, total - totalOk);
-
-            row.querySelector('.pdi-total').textContent = total;
-            row.querySelector('.pdi-ok').textContent = totalOk;
-            row.querySelector('.pdi-ng').textContent = ng;
-
-            // Recalculate summary rows
-            updateSummaryValues('pdi');
-
-            updateEditTabSummary();
-            autoSaveData();
-        }
-
-        function calculateRepairTotal(element) {
-            const row = element.closest('tr');
-            const inputs = row.querySelectorAll('input[type="number"]');
-            
-            let total = 0;
-            let totalOk = 0;
-            
-             for(let i=0; i<5; i++) {
-                total += parseInt(inputs[i*2].value) || 0;
-                totalOk += parseInt(inputs[i*2+1].value) || 0;
-            }
-
-            const ng = Math.max(0, total - totalOk);
-
-            row.querySelector('.repair-total').textContent = total;
-            row.querySelector('.repair-ok').textContent = totalOk;
-            row.querySelector('.repair-ng').textContent = ng;
-
-            updateSummaryValues('pdi'); // Trigger global update
-
-            updateEditTabSummary();
-            autoSaveData();
-        }
-
-        function getTargetsFromSummary(type) {
-            // We only use 'pdi' prefix for targets now as Global
-            if (type === 'repair') return {}; // No separate repair targets
-            return {
-                p1: parseInt(document.getElementById(`pdi-target-p1`)?.value) || 0,
-                p2: parseInt(document.getElementById(`pdi-target-p2`)?.value) || 0,
-                p3: parseInt(document.getElementById(`pdi-target-p3`)?.value) || 0,
-                p4: parseInt(document.getElementById(`pdi-target-p4`)?.value) || 0,
-                p5: parseInt(document.getElementById(`pdi-target-p5`)?.value) || 0
-            };
-        }
-
-        function addNewCarModel(section) {
-            const carModel = prompt('กรอกชื่อรุ่นรถใหม่:');
-            if (carModel && carModel.trim() !== '') {
-                let tbodyId, createRowFunc;
-                
-                if (section === 'pdi') {
-                    tbodyId = 'pdiTableBody';
-                    createRowFunc = createPdiRow;
-                } else {
-                    tbodyId = 'repairTableBody';
-                    createRowFunc = createRepairRow;
-                }
-                
-                const tbody = document.getElementById(tbodyId);
-                if (tbody) {
-                    // Create empty data object for new row
-                    const emptyData = { p1_total:0, p1_ok:0, p2_total:0, p2_ok:0, p3_total:0, p3_ok:0, p4_total:0, p4_ok:0, p5_total:0, p5_ok:0 };
-                    tbody.appendChild(createRowFunc(carModel.trim(), emptyData));
-                    updateSummaryValues('pdi'); // Update sums
-                    updateEditTabSummary();
-                    autoSaveData(); // Save immediately so the new model persists
-                }
-            }
-        }
-
-        function removePdiRow(button) {
-            const row = button.closest('tr');
-            const modelName = row.querySelector('td').textContent.trim();
-            if (confirm(`คุณต้องการลบรุ่นรถ "${modelName}" หรือไม่?`)) {
-                row.remove();
-                updateSummaryValues('pdi');
-                updateEditTabSummary();
-                autoSaveData();
-            }
-        }
-
-        function removeRepairRow(button) {
-            const row = button.closest('tr');
-            const modelName = row.querySelector('td').textContent.trim();
-            if (confirm(`คุณต้องการลบรุ่นรถ "${modelName}" หรือไม่?`)) {
-                row.remove();
-                updateSummaryValues('pdi');
-                updateEditTabSummary();
-                autoSaveData();
-            }
+            okSummaryDiv.innerHTML = `<strong>รวม OK ทั้งหมด:</strong> ${totalOk} คัน <br> (${okBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
+            ngSummaryDiv.innerHTML = `<strong>รวม NG ทั้งหมด:</strong> ${totalNg} คัน <br> (${ngBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
         }
         
-        function autoSaveData() {
-            const selectedDate = document.getElementById('selectedDate').value;
-            
-            // Collect targets from summary rows at the top
-            const pdiTargets = getTargetsFromSummary('pdi'); // Global Targets
-            const repairTargets = {}; // Empty as requested
-            
-            // Determine which notes to save based on visibility
-            let dailyNotesVal = '';
-            if (!document.getElementById('editContent').classList.contains('hidden')) {
-                dailyNotesVal = document.getElementById('editDailyNotes').value;
-            } else {
-                dailyNotesVal = document.getElementById('dailyNotes').value;
-            }
+        function createMonthlyModelBarCharts(modelCumulativeData) {
+             const lastDayIndex = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - 1;
+            const sortedModels = Object.keys(modelCumulativeData).sort();
 
-            const data = { 
-                date: selectedDate, 
-                pdiData: getPdiData(), 
-                repairData: getRepairData(), 
-                pdiTargets: pdiTargets,
-                repairTargets: repairTargets,
-                dailyNotes: dailyNotesVal, 
-                timestamp: new Date().toISOString() 
-            };
-            
-            const dateKey = selectedDate.replace(/-/g, '_');
-            database.ref(`reports/${dateKey}/${currentSite}`).set(data);
-             if(selectedDate === document.getElementById('reportDate').value) {
-                 updateDailyReportView(data);
-                 // Update both note fields to stay in sync
-                 document.getElementById('dailyNotes').value = dailyNotesVal;
-                 document.getElementById('editDailyNotes').value = dailyNotesVal;
-             }
-             const dateObj = new Date(selectedDate + 'T00:00:00');
-             updateTotalsForMonth(dateObj.getFullYear(), dateObj.getMonth());
+            // OK Chart Data
+            const okLabels = [];
+            const okData = [];
+            sortedModels.forEach(model => {
+                const totalOk = modelCumulativeData[model].ok[lastDayIndex];
+                if (totalOk > 0) {
+                    okLabels.push(model);
+                    okData.push(totalOk);
+                }
+            });
+
+            // NG Chart Data
+            const ngLabels = [];
+            const ngData = [];
+             sortedModels.forEach(model => {
+                const totalNg = modelCumulativeData[model].ng[lastDayIndex];
+                if (totalNg > 0) {
+                    ngLabels.push(model);
+                    ngData.push(totalNg);
+                }
+            });
+
+            // Create charts
+            window.myMonthlyModelOkBarChart = createSingleHorizontalBarChart('monthlyModelOkBarChart', window.myMonthlyModelOkBarChart, okLabels, okData, 'rgba(74, 222, 128, 0.8)', 'OK');
+            window.myMonthlyModelNgBarChart = createSingleHorizontalBarChart('monthlyModelNgBarChart', window.myMonthlyModelNgBarChart, ngLabels, ngData, 'rgba(252, 165, 165, 0.8)', 'NG');
         }
 
+        function createSingleHorizontalBarChart(canvasId, chartInstance, labels, data, color, datasetLabel) {
+            const ctx = document.getElementById(canvasId)?.getContext('2d');
+            if (!ctx) return null;
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.font = "16px Kanit";
+                ctx.fillStyle = "#6b7280";
+                ctx.textAlign = "center";
+                ctx.fillText(`ไม่มีข้อมูล ${datasetLabel} สำหรับเดือนนี้`, ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return null;
+            }
+            
+            const datalabelsPlugin = {
+                id: 'horizontalBarDatalabels',
+                afterDatasetsDraw: (chart) => {
+                    const { ctx } = chart;
+                    ctx.save();
+                    ctx.font = 'bold 14px Kanit';
+                    ctx.textBaseline = 'middle';
+
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta.hidden) {
+                        meta.data.forEach((bar, index) => {
+                            const value = chart.data.datasets[0].data[index];
+                            if (value > 0) {
+                                const textWidth = ctx.measureText(value).width;
+                                const padding = 12;
+
+                                if (bar.width > textWidth + padding) {
+                                    ctx.fillStyle = '#fff';
+                                    ctx.textAlign = 'center';
+                                    const xPosition = bar.base + (bar.width / 2);
+                                    ctx.fillText(value, xPosition, bar.y);
+                                } else {
+                                    ctx.fillStyle = '#374151'; 
+                                    ctx.textAlign = 'left';
+                                    ctx.fillText(value, bar.x + 5, bar.y);
+                                }
+                            }
+                        });
+                    }
+                    ctx.restore();
+                }
+            };
+
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: data,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, ticks: { font: { family: "'Kanit', sans-serif" } } },
+                        y: { ticks: { font: { family: "'Kanit', sans-serif" } } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                             titleFont: { family: "'Kanit', sans-serif" },
+                             bodyFont: { family: "'Kanit', sans-serif" }
+                        }
+                    }
+                },
+                plugins: [datalabelsPlugin]
+            });
+        }
+        
+        async function createDailyChart() {
+            const ctx = document.getElementById('dailyChart')?.getContext('2d');
+            if(!ctx) return;
+            if (window.myDailyChart) {
+                window.myDailyChart.destroy();
+                window.myDailyChart = null;
+            }
+            const monthlyTarget = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 4000;
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const dailyTarget = Math.round(monthlyTarget / daysInMonth);
+            const dailyData = await getRealDailyData(dailyTarget);
+            const labels = dailyData.map(d => `วันที่ ${d.day}`);
+            const dataPoints = dailyData.map(d => d.count);
+            const pointColors = dailyData.map(d => d.count >= d.target ? '#10b981' : '#ef4444');
+            const datalabelsPlugin = {
+                id: 'customDatalabels',
+                afterDatasetsDraw: (chart) => {
+                    const { ctx, data } = chart;
+                    const dataset = data.datasets[0];
+                    ctx.save();
+                    ctx.font = 'bold 11px Kanit';
+                    dataset.data.forEach((value, index) => {
+                        if (value === 0) return;
+                        const point = chart.getDatasetMeta(0).data[index];
+                        const { x, y } = point.getProps(['x', 'y'], true);
+                        const text = value.toString();
+                        const textWidth = ctx.measureText(text).width;
+                        const padding = 4;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                        ctx.fillRect(x - (textWidth / 2) - padding, y - 22, textWidth + (padding * 2), 16);
+                        ctx.fillStyle = dataset.pointBackgroundColor[index] || '#1f2937';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(text, x, y - 5);
+                    });
+                    ctx.restore();
+                }
+            };
+            window.myDailyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ยอดรถ OK จริง (PDI + REPAIR)',
+                        data: dataPoints,
+                        borderColor: '#3b82f6',
+                        backgroundColor: (context) => {
+                            const {ctx, chartArea} = context.chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                            gradient.addColorStop(0, 'rgba(59, 130, 246, 0)');
+                            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
+                            return gradient;
+                        },
+                        fill: true, tension: 0.4, pointBackgroundColor: pointColors, pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff', pointHoverBorderColor: pointColors, pointRadius: 5,
+                        pointHoverRadius: 7, borderWidth: 3,
+                    }, {
+                        label: `เป้าหมาย (${dailyTarget} คัน)`,
+                        data: Array(dailyData.length).fill(dailyTarget),
+                        borderColor: '#f59e0b', borderDash: [5, 5], fill: false,
+                        pointRadius: 0, borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e5e7eb', drawBorder: false }, ticks: { font: { family: "'Kanit', sans-serif" } } },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { 
+                                font: { family: "'Kanit', sans-serif" },
+                                color: function(context) {
+                                    if (dailyData[context.index] && dailyData[context.index].dayOfWeek === 0) { // 0 is Sunday
+                                        return '#ef4444'; // Red for Sundays
+                                    }
+                                    return '#6b7280'; // Default color for other days
+                                }
+                            } 
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                font: { family: "'Kanit', sans-serif", size: 14 }, 
+                                usePointStyle: true,
+                                generateLabels: function(chart) {
+                                    const originalLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    originalLabels.forEach(label => {
+                                        if (label.text.includes('ยอดรถ OK จริง')) {
+                                            label.fillStyle = '#10b981';
+                                            label.strokeStyle = '#10b981';
+                                        }
+                                    });
+                                    return originalLabels;
+                                }
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937', titleFont: { family: "'Kanit', sans-serif", weight: 'bold', size: 14 },
+                            bodyFont: { family: "'Kanit', sans-serif", size: 12 }, padding: 10, cornerRadius: 8, displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += context.parsed.y + ' คัน'; }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [datalabelsPlugin]
+            });
+        }
+
+        async function getRealDailyData(dailyTarget) {
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const dailyData = [];
+            // The loop will now iterate through all days of the current month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dayOfWeek = date.getDay();
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateKey = dateStr.replace(/-/g, '_');
+                let dayOkTotal = 0;
+                let hasRealData = false;
+                const snapshot = await database.ref('reports/' + dateKey).once('value');
+                const data = snapshot.val();
+                if (data) {
+                    if (data.pdiData) data.pdiData.forEach(model => { dayOkTotal += model.ok || 0; });
+                    if (data.repairData) data.repairData.forEach(model => { dayOkTotal += model.ok || 0; });
+                    if (dayOkTotal > 0) hasRealData = true;
+                }
+                dailyData.push({ day, count: dayOkTotal, target: dailyTarget, isReal: hasRealData, dayOfWeek: dayOfWeek });
+            }
+            return dailyData;
+        }
+        
+        // --- Event Listeners and Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            
+            updateMonthlyTotalsFromHistoricalData(); 
+            loadAndSyncDataForDate(today);
+
+            document.getElementById('selectedDate').addEventListener('change', function() {
+                loadAndSyncDataForDate(this.value);
+            });
+            document.getElementById('reportDate').addEventListener('change', function() {
+                loadAndSyncDataForDate(this.value);
+            });
+
+            // ADDED: Auto-save for daily notes textarea
+            document.getElementById('dailyNotes').addEventListener('input', () => {
+                const selectedDate = document.getElementById('reportDate').value;
+                if (!selectedDate) { 
+                    console.error("No date selected to save notes for.");
+                    return; 
+                }
+                const notes = document.getElementById('dailyNotes').value;
+                const dateKey = selectedDate.replace(/-/g, '_');
+                database.ref('reports/' + dateKey + '/dailyNotes').set(notes)
+                  .catch(error => console.error('Auto-save notes failed:', error));
+            });
+        });
+
+        // --- Helper & Utility functions (Full bodies are here to avoid errors) ---
+        function updateRemaining() {
+            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
+            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
+            const remaining = Math.max(0, target - ok);
+            document.getElementById('remaining').textContent = remaining.toLocaleString();
+            updateTopCardPercentages();
+        }
+
+        function updateTopCardPercentages() {
+            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
+            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
+            const remaining = parseInt(document.getElementById('remaining').textContent.replace(/,/g, '')) || 0;
+            const totalPDI = parseInt(document.getElementById('totalPDI').textContent.replace(/,/g, '')) || 0;
+
+            if (target > 0) {
+                const okPercent = (ok / target * 100).toFixed(1);
+                const remainingPercent = (remaining / target * 100).toFixed(1);
+                const totalPdiPercent = (totalPDI / target * 100).toFixed(1);
+
+                document.getElementById('monthlyTargetPercent').textContent = '(100.0%)';
+                document.getElementById('carsOkPercent').textContent = `(${okPercent}%)`;
+                document.getElementById('remainingPercent').textContent = `(${remainingPercent}%)`;
+                document.getElementById('totalPdiPercent').textContent = `(${totalPdiPercent}%)`;
+            } else {
+                document.getElementById('monthlyTargetPercent').textContent = '';
+                document.getElementById('carsOkPercent').textContent = '';
+                document.getElementById('remainingPercent').textContent = '';
+                document.getElementById('totalPdiPercent').textContent = '';
+            }
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('th-TH', dateOptions);
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('th-TH', timeOptions);
+        }
+        function createCarModelRow(section, modelName = '', data = {}) {
+            const newRow = document.createElement('div');
+            const isPdi = section === 'pdi';
+            // Add a specific class for targeting, then add other classes
+            newRow.className = `car-model-row p-4 ${isPdi ? 'bg-gray-50' : 'bg-red-50'} rounded-lg flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4`;
+            const onchangeFunc = isPdi ? 'calculateNG(this)' : 'calculateRepairNG(this)';
+            const mainLabel = isPdi ? 'PDI' : 'REPAIR';
+            const mainValue = isPdi ? (data.pdi || 0) : (data.repair || 0);
+            newRow.innerHTML = `
+                <div class="w-full lg:w-auto lg:flex-shrink-0 font-medium text-gray-800 flex items-center justify-between">
+                    <span class="text-lg">${modelName.toUpperCase()}</span>
+                    <button onclick="removeCarModel(this)" class="lg:hidden text-red-500 hover:text-red-700 ml-2 p-1 rounded hover:bg-red-100 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="w-full lg:w-auto flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 flex-wrap">
+                    <div class="flex items-center justify-between sm:justify-start space-x-2">
+                        <label class="text-sm font-medium text-gray-600 w-12 flex-shrink-0">${mainLabel}:</label>
+                        <input type="number" class="w-full sm:w-24 p-2 border border-gray-300 rounded focus:ring-2 ${isPdi ? 'focus:ring-blue-500' : 'focus:ring-red-500'}" value="${mainValue}" oninput="${onchangeFunc}">
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-start space-x-2">
+                        <label class="text-sm font-medium text-gray-600 w-12 flex-shrink-0">OK:</label>
+                        <input type="number" class="w-full sm:w-24 p-2 border border-gray-300 rounded focus:ring-2 ${isPdi ? 'focus:ring-blue-500' : 'focus:ring-red-500'}" value="${data.ok || 0}" oninput="${onchangeFunc}">
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-start space-x-2">
+                        <label class="text-sm font-medium text-gray-600 w-12 flex-shrink-0">NG:</label>
+                        <input type="number" class="w-full sm:w-24 p-2 border border-gray-300 rounded bg-gray-100" value="${data.ng || 0}" readonly>
+                    </div>
+                     <button onclick="removeCarModel(this)" class="hidden lg:flex text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            `;
+            return newRow;
+        }
+
+        function calculateNG(element) {
+            const row = element.closest('.car-model-row');
+            const inputs = row.querySelectorAll('input[type="number"]');
+            const pdiValue = parseInt(inputs[0].value) || 0;
+            const okValue = parseInt(inputs[1].value) || 0;
+            inputs[2].value = Math.max(0, pdiValue - okValue);
+            updateEditTabSummary();
+            debouncedSave();
+        }
+        function calculateRepairNG(element) {
+            const row = element.closest('.car-model-row');
+            const inputs = row.querySelectorAll('input[type="number"]');
+            const repairValue = parseInt(inputs[0].value) || 0;
+            const okValue = parseInt(inputs[1].value) || 0;
+            inputs[2].value = Math.max(0, repairValue - okValue);
+            updateEditTabSummary();
+            debouncedSave();
+        }
+
+        // Debounce: รอ 1.5 วินาทีหลังพิมพ์เสร็จแล้วค่อย save
+        let _saveTimer = null;
+        function debouncedSave() {
+            clearTimeout(_saveTimer);
+            showSaveStatus('typing');
+            _saveTimer = setTimeout(() => { autoSaveData(); }, 1500);
+        }
+
+        function showSaveStatus(state) {
+            const el = document.getElementById('saveStatusBadge');
+            if (!el) return;
+            if (state === 'typing') {
+                el.textContent = '✏️ กำลังพิมพ์...';
+                el.className = 'text-xs text-gray-400 font-medium transition-all';
+            } else if (state === 'saving') {
+                el.textContent = '💾 กำลังบันทึก...';
+                el.className = 'text-xs text-blue-500 font-medium transition-all';
+            } else if (state === 'saved') {
+                el.textContent = '✅ บันทึกแล้ว';
+                el.className = 'text-xs text-green-600 font-medium transition-all';
+            }
+        }
+        function getPdiData() {
+            const data = [];
+            document.querySelectorAll('#pdiSection .car-model-row').forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                data.push({ 
+                    model: row.querySelector('span').textContent.trim(), 
+                    pdi: parseInt(inputs[0].value) || 0, 
+                    ok: parseInt(inputs[1].value) || 0, 
+                    ng: parseInt(inputs[2].value) || 0 
+                });
+            });
+            return data;
+        }
+        function getRepairData() {
+            const data = [];
+            document.querySelectorAll('#repairSection .car-model-row').forEach(row => {
+                 const inputs = row.querySelectorAll('input[type="number"]');
+                data.push({ 
+                    model: row.querySelector('span').textContent.trim(), 
+                    repair: parseInt(inputs[0].value) || 0, 
+                    ok: parseInt(inputs[1].value) || 0, 
+                    ng: parseInt(inputs[2].value) || 0 
+                });
+            });
+            return data;
+        }
+        function autoSaveData() {
+            const selectedDate = document.getElementById('selectedDate').value;
+            const data = { date: selectedDate, pdiData: getPdiData(), repairData: getRepairData(), dailyNotes: document.getElementById('dailyNotes').value, timestamp: new Date().toISOString() };
+            const dateKey = selectedDate.replace(/-/g, '_');
+            showSaveStatus('saving');
+            database.ref('reports/' + dateKey).set(data).then(() => {
+                showSaveStatus('saved');
+                // อัปเดต Report tab summary โดยไม่ rebuild DOM ของ Edit tab
+                if (selectedDate === document.getElementById('reportDate').value) {
+                    updateDailyReportView(data);
+                    updateReportTabSummary(data);
+                }
+                // Debounce monthly stats refresh — รอ 3s หลัง save เสร็จ
+                clearTimeout(window._monthlyRefreshTimer);
+                window._monthlyRefreshTimer = setTimeout(() => {
+                    updateMonthlyTotalsFromHistoricalData();
+                }, 3000);
+            }).catch(err => {
+                showSaveStatus('typing');
+                console.error('Save failed:', err);
+            });
+        }
+        function saveData() {
+            clearTimeout(_saveTimer); // ยกเลิก debounce ที่ค้างอยู่
+            const selectedDate = document.getElementById('selectedDate').value;
+            const data = { date: selectedDate, pdiData: getPdiData(), repairData: getRepairData(), dailyNotes: document.getElementById('dailyNotes').value, timestamp: new Date().toISOString() };
+            const dateKey = selectedDate.replace(/-/g, '_');
+            showSaveStatus('saving');
+            database.ref('reports/' + dateKey).set(data).then(() => {
+                showSaveStatus('saved');
+                showToast(`✅ บันทึกข้อมูลวันที่ ${selectedDate} เรียบร้อยแล้ว!`);
+                if (selectedDate === document.getElementById('reportDate').value) {
+                    updateDailyReportView(data);
+                    updateReportTabSummary(data);
+                }
+                updateMonthlyTotalsFromHistoricalData();
+            });
+        }
         function saveDailyReport() {
             const selectedDate = document.getElementById('reportDate').value;
             if (!selectedDate) { alert("กรุณาเลือกวันที่ก่อนบันทึกหมายเหตุ"); return; }
             const notes = document.getElementById('dailyNotes').value;
             const dateKey = selectedDate.replace(/-/g, '_');
-            database.ref(`reports/${dateKey}/${currentSite}/dailyNotes`).set(notes)
+            database.ref('reports/' + dateKey + '/dailyNotes').set(notes)
                 .then(() => alert('บันทึกหมายเหตุเรียบร้อยแล้ว!'))
                 .catch(error => alert('เกิดข้อผิดพลาดในการบันทึกหมายเหตุ: ' + error.message));
         }
-
         function editTarget() {
             const currentTarget = document.getElementById('monthlyTarget').textContent.replace(/,/g, '');
             const newTarget = prompt('กรอกเป้าหมายรายเดือนใหม่:', currentTarget);
-            
             if (newTarget && !isNaN(newTarget)) {
-                // Update UI immediately
                 document.getElementById('monthlyTarget').textContent = parseInt(newTarget).toLocaleString();
                 updateRemaining();
-
-                // Determine Date context
-                const selectedDate = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
-                const dateObj = new Date(selectedDate + 'T00:00:00');
-                const year = dateObj.getFullYear();
-                const month = dateObj.getMonth() + 1; // 1-based
-                const monthKey = `${year}_${month}`;
-
-                // Save to centralized monthly path
-                database.ref(`monthly_targets/${monthKey}/${currentSite}`).set(parseInt(newTarget))
-                    .then(() => { 
-                        showTargetUpdateIndicator(); 
-                        // Refresh charts/calculations to reflect new percentage/target line
-                        updateTotalsForMonth(year, month - 1); 
-                    })
+                const selectedDate = document.getElementById('selectedDate').value;
+                const dateKey = selectedDate.replace(/-/g, '_');
+                database.ref('reports/' + dateKey + '/monthlyTarget').set(parseInt(newTarget))
+                    .then(() => { showTargetUpdateIndicator(); createDailyChart(); })
                     .catch((error) => console.error('Error updating target:', error));
             }
         }
-
         function showTargetUpdateIndicator() {
             const indicator = document.createElement('div');
             indicator.style.cssText = `position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease;`;
@@ -1464,6 +1598,18 @@
                 link.href = canvas.toDataURL();
                 link.click();
             });
+        }
+        function addNewCarModel(section) {
+            openAddCarModal(section);
+        }
+        function removeCarModel(button) {
+            const row = button.closest('.car-model-row');
+            const carModelText = row.querySelector('span').textContent.trim();
+            if (confirm(`คุณต้องการลบรุ่นรถ "${carModelText}" ออกจากวันนี้หรือไม่?\n\n(ถ้าต้องการลบออกจากฐานข้อมูลถาวร กรุณาใช้ "จัดการฐานข้อมูลรุ่นรถ")`)) {
+                row.remove();
+                updateEditTabSummary();
+                autoSaveData();
+            }
         }
         
         function updateEditTabSummary() {
@@ -1554,547 +1700,7 @@
             totalModelDetailsDiv.innerHTML = totalModelHtml || '<p class="text-center text-gray-500">ไม่มีข้อมูล</p>';
         }
 
-        // --- Missing Helper Functions ---
-
-        function getPdiData() {
-            const data = [];
-            document.querySelectorAll('#pdiTableBody tr.model-row').forEach(row => {
-                const inputs = row.querySelectorAll('input[type="number"]');
-                const p1_total = parseInt(inputs[0].value) || 0;
-                const p1_ok = parseInt(inputs[1].value) || 0;
-                
-                const p2_total = parseInt(inputs[2].value) || 0;
-                const p2_ok = parseInt(inputs[3].value) || 0;
-
-                const p3_total = parseInt(inputs[4].value) || 0;
-                const p3_ok = parseInt(inputs[5].value) || 0;
-
-                const p4_total = parseInt(inputs[6].value) || 0;
-                const p4_ok = parseInt(inputs[7].value) || 0;
-
-                const p5_total = parseInt(inputs[8].value) || 0;
-                const p5_ok = parseInt(inputs[9].value) || 0;
-
-                const total = p1_total + p2_total + p3_total + p4_total + p5_total;
-                const ok = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
-                const ng = Math.max(0, total - ok);
-
-                data.push({ 
-                    model: row.querySelector('td').textContent.trim(), 
-                    p1_total, p1_ok,
-                    p2_total, p2_ok,
-                    p3_total, p3_ok,
-                    p4_total, p4_ok,
-                    p5_total, p5_ok,
-                    pdi: total, 
-                    ok: ok, 
-                    ng: ng
-                });
-            });
-            return data;
-        }
-
-        function getRepairData() {
-            const data = [];
-            document.querySelectorAll('#repairTableBody tr.model-row').forEach(row => {
-                const inputs = row.querySelectorAll('input[type="number"]');
-                const p1_total = parseInt(inputs[0].value) || 0;
-                const p1_ok = parseInt(inputs[1].value) || 0;
-                
-                const p2_total = parseInt(inputs[2].value) || 0;
-                const p2_ok = parseInt(inputs[3].value) || 0;
-
-                const p3_total = parseInt(inputs[4].value) || 0;
-                const p3_ok = parseInt(inputs[5].value) || 0;
-
-                const p4_total = parseInt(inputs[6].value) || 0;
-                const p4_ok = parseInt(inputs[7].value) || 0;
-
-                const p5_total = parseInt(inputs[8].value) || 0;
-                const p5_ok = parseInt(inputs[9].value) || 0;
-
-                const total = p1_total + p2_total + p3_total + p4_total + p5_total;
-                const ok = p1_ok + p2_ok + p3_ok + p4_ok + p5_ok;
-                const ng = Math.max(0, total - ok);
-
-                data.push({ 
-                    model: row.querySelector('td').textContent.trim(), 
-                    p1_total, p1_ok,
-                    p2_total, p2_ok,
-                    p3_total, p3_ok,
-                    p4_total, p4_ok,
-                    p5_total, p5_ok,
-                    repair: total, 
-                    ok: ok, 
-                    ng: ng
-                });
-            });
-            return data;
-        }
-
-        function updateRemaining() {
-            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
-            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
-            const remaining = Math.max(0, target - ok);
-            document.getElementById('remaining').textContent = remaining.toLocaleString();
-            updateTopCardPercentages();
-        }
-
-        function updateTopCardPercentages() {
-            const target = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 0;
-            const ok = parseInt(document.getElementById('carsOK').textContent.replace(/,/g, '')) || 0;
-            const remaining = parseInt(document.getElementById('remaining').textContent.replace(/,/g, '')) || 0;
-            const totalPDI = parseInt(document.getElementById('totalPDI').textContent.replace(/,/g, '')) || 0;
-
-            if (target > 0) {
-                const okPercent = (ok / target * 100).toFixed(1);
-                const remainingPercent = (remaining / target * 100).toFixed(1);
-                const totalPdiPercent = (totalPDI / target * 100).toFixed(1);
-
-                document.getElementById('monthlyTargetPercent').textContent = '(100.0%)';
-                document.getElementById('carsOkPercent').textContent = `(${okPercent}%)`;
-                document.getElementById('remainingPercent').textContent = `(${remainingPercent}%)`;
-                document.getElementById('totalPdiPercent').textContent = `(${totalPdiPercent}%)`;
-            } else {
-                document.getElementById('monthlyTargetPercent').textContent = '';
-                document.getElementById('carsOkPercent').textContent = '';
-                document.getElementById('remainingPercent').textContent = '';
-                document.getElementById('totalPdiPercent').textContent = '';
-            }
-        }
-        
-        async function getRealDailyData(dailyTarget, year, month) {
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const dailyData = [];
-            
-            const promises = [];
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dateKey = dateStr.replace(/-/g, '_');
-                promises.push(database.ref('reports/' + dateKey).once('value'));
-            }
-
-            const snapshots = await Promise.all(promises);
-
-            snapshots.forEach((snapshot, index) => {
-                const day = index + 1;
-                const date = new Date(year, month, day);
-                const dayOfWeek = date.getDay();
-                const allData = snapshot.val() || {};
-                let data = null;
-
-                if (allData[currentSite]) {
-                    data = allData[currentSite];
-                } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
-                    data = allData;
-                }
-
-                let dayOkTotal = 0;
-                let hasRealData = false;
-
-                if (data) {
-                    if (data.pdiData) data.pdiData.forEach(model => { 
-                         dayOkTotal += model.ok || 0; 
-                    });
-                    if (data.repairData) data.repairData.forEach(model => { dayOkTotal += model.ok || 0; });
-                    if (dayOkTotal > 0) hasRealData = true;
-                }
-                dailyData.push({ day, count: dayOkTotal, target: dailyTarget, isReal: hasRealData, dayOfWeek: dayOfWeek });
-            });
-            return dailyData;
-        }
-
-        async function getMonthlyOkTotal(year, month) {
-            let totalOk = 0;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            const promises = [];
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dateKey = dateStr.replace(/-/g, '_');
-                promises.push(database.ref('reports/' + dateKey).once('value'));
-            }
-            
-            const snapshots = await Promise.all(promises);
-
-            snapshots.forEach(snapshot => {
-                const allData = snapshot.val() || {};
-                let data = null;
-                 if (allData[currentSite]) {
-                    data = allData[currentSite];
-                } else if (currentSite === '2ps' && (allData.pdiData || allData.repairData)) {
-                    data = allData;
-                }
-
-                if (data) {
-                    if (data.pdiData) {
-                        data.pdiData.forEach(m => {
-                            totalOk += m.ok || 0;
-                        });
-                    }
-                    if (data.repairData) {
-                        data.repairData.forEach(m => {
-                            totalOk += m.ok || 0;
-                        });
-                    }
-                }
-            });
-            return totalOk;
-        }
-        
-        async function update3MonthSummary(currentYear, currentMonth) {
-            const currentSelectedDate = new Date(currentYear, currentMonth, 1);
-
-            const lastMonthDate = new Date(currentSelectedDate);
-            lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
-            const twoMonthsAgoDate = new Date(currentSelectedDate);
-            twoMonthsAgoDate.setMonth(twoMonthsAgoDate.getMonth() - 2);
-            const threeMonthsAgoDate = new Date(currentSelectedDate);
-            threeMonthsAgoDate.setMonth(threeMonthsAgoDate.getMonth() - 3);
-
-            const [lastMonthTotal, twoMonthsAgoTotal, threeMonthsAgoTotal] = await Promise.all([
-                getMonthlyOkTotal(lastMonthDate.getFullYear(), lastMonthDate.getMonth()),
-                getMonthlyOkTotal(twoMonthsAgoDate.getFullYear(), twoMonthsAgoDate.getMonth()),
-                getMonthlyOkTotal(threeMonthsAgoDate.getFullYear(), threeMonthsAgoDate.getMonth())
-            ]);
-
-            document.getElementById('lastMonthLabel').textContent = lastMonthDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-            document.getElementById('lastMonthCount').textContent = lastMonthTotal.toLocaleString();
-
-            document.getElementById('twoMonthsAgoLabel').textContent = twoMonthsAgoDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-            document.getElementById('twoMonthsAgoCount').textContent = twoMonthsAgoTotal.toLocaleString();
-
-            document.getElementById('threeMonthsAgoLabel').textContent = threeMonthsAgoDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-            document.getElementById('threeMonthsAgoCount').textContent = threeMonthsAgoTotal.toLocaleString();
-        }
-
-        // --- Charting Functions (Restored) ---
-
-        function updateChartSummaries(modelCumulativeData, year, month) {
-            const okSummaryDiv = document.getElementById('okChartSummary');
-            const ngSummaryDiv = document.getElementById('ngChartSummary');
-            if (!okSummaryDiv || !ngSummaryDiv) return;
-
-            let totalOk = 0;
-            let okBreakdown = [];
-            let totalNg = 0;
-            let ngBreakdown = [];
-
-            const lastDayIndex = new Date(year, month + 1, 0).getDate() - 1;
-
-            const sortedModels = Object.keys(modelCumulativeData).sort();
-
-            sortedModels.forEach(model => {
-                const modelOk = modelCumulativeData[model].ok[lastDayIndex] || 0;
-                const modelNg = modelCumulativeData[model].ng[lastDayIndex] || 0;
-
-                totalOk += modelOk;
-                totalNg += modelNg;
-
-                if (modelOk > 0) {
-                    okBreakdown.push(`${model}: ${modelOk}`);
-                }
-                if (modelNg > 0) {
-                    ngBreakdown.push(`${model}: ${modelNg}`);
-                }
-            });
-
-            okSummaryDiv.innerHTML = `<strong>รวม OK ทั้งหมด:</strong> ${totalOk} คัน <br> (${okBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
-            ngSummaryDiv.innerHTML = `<strong>รวม NG ทั้งหมด:</strong> ${totalNg} คัน <br> (${ngBreakdown.join(', ') || 'ไม่มีข้อมูล'})`;
-        }
-
-        function createMonthlyModelBarCharts(modelCumulativeData, year, month) {
-             const lastDayIndex = new Date(year, month + 1, 0).getDate() - 1;
-            const sortedModels = Object.keys(modelCumulativeData).sort();
-
-            // OK Chart Data
-            const okLabels = [];
-            const okData = [];
-            sortedModels.forEach(model => {
-                const totalOk = modelCumulativeData[model].ok[lastDayIndex];
-                if (totalOk > 0) {
-                    okLabels.push(model);
-                    okData.push(totalOk);
-                }
-            });
-
-            // NG Chart Data
-            const ngLabels = [];
-            const ngData = [];
-             sortedModels.forEach(model => {
-                const totalNg = modelCumulativeData[model].ng[lastDayIndex];
-                if (totalNg > 0) {
-                    ngLabels.push(model);
-                    ngData.push(totalNg);
-                }
-            });
-
-            // Create charts
-            window.myMonthlyModelOkBarChart = createSingleHorizontalBarChart('monthlyModelOkBarChart', window.myMonthlyModelOkBarChart, okLabels, okData, 'rgba(74, 222, 128, 0.8)', 'OK');
-            window.myMonthlyModelNgBarChart = createSingleHorizontalBarChart('monthlyModelNgBarChart', window.myMonthlyModelNgBarChart, ngLabels, ngData, 'rgba(252, 165, 165, 0.8)', 'NG');
-        }
-
-        function createSingleHorizontalBarChart(canvasId, chartInstance, labels, data, color, datasetLabel) {
-            const ctx = document.getElementById(canvasId)?.getContext('2d');
-            if (!ctx) return null;
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            if (labels.length === 0) {
-                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                ctx.font = "16px Kanit";
-                ctx.fillStyle = "#6b7280";
-                ctx.textAlign = "center";
-                ctx.fillText(`ไม่มีข้อมูล ${datasetLabel} สำหรับเดือนนี้`, ctx.canvas.width / 2, ctx.canvas.height / 2);
-                return null;
-            }
-            
-            // Note: DataLabels plugin is loaded globally via CDN as chartjs-plugin-datalabels
-            // We register it globally or per chart. Here we assume it's available.
-            // If using chartjs-plugin-datalabels, the configuration is inside `plugins`.
-            
-            return new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: datasetLabel,
-                        data: data,
-                        backgroundColor: color,
-                        borderColor: color,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { beginAtZero: true, ticks: { font: { family: "'Kanit', sans-serif" } } },
-                        y: { ticks: { font: { family: "'Kanit', sans-serif" } } }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                             titleFont: { family: "'Kanit', sans-serif" },
-                             bodyFont: { family: "'Kanit', sans-serif" }
-                        },
-                        datalabels: {
-                            color: '#ffffff',
-                            anchor: 'center',
-                            align: 'center',
-                            font: { weight: 'bold', family: "'Kanit', sans-serif" },
-                            formatter: (value, context) => value > 0 ? value : ''
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels] // Use the plugin variable provided by the CDN
-            });
-        }
-        
-        async function createDailyChart(year, month) {
-            const canvas = document.getElementById('dailyChart');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            // Fix: Robustly destroy existing chart on this canvas using Chart.js registry
-            // This prevents "Canvas is already in use" error if the variable tracking fails
-            const existingChart = Chart.getChart(canvas);
-            if (existingChart) {
-                existingChart.destroy();
-            }
-            // Also check our global variable just in case
-            if (dailyChartInstance) {
-                dailyChartInstance.destroy();
-                dailyChartInstance = null;
-            }
-            
-            const monthlyTarget = parseInt(document.getElementById('monthlyTarget').textContent.replace(/,/g, '')) || 4000;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const dailyTarget = Math.round(monthlyTarget / daysInMonth);
-            const dailyData = await getRealDailyData(dailyTarget, year, month);
-            const labels = dailyData.map(d => `วันที่ ${d.day}`);
-            const dataPoints = dailyData.map(d => d.count);
-            const pointColors = dailyData.map(d => d.count >= d.target ? '#10b981' : '#ef4444');
-
-            return new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'ยอดรถ OK จริง (PDI + REPAIR)',
-                        data: dataPoints,
-                        borderColor: '#3b82f6',
-                        backgroundColor: (context) => {
-                            const {ctx, chartArea} = context.chart;
-                            if (!chartArea) return null;
-                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                            gradient.addColorStop(0, 'rgba(59, 130, 246, 0)');
-                            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
-                            return gradient;
-                        },
-                        fill: true, tension: 0.4, pointBackgroundColor: pointColors, pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff', pointHoverBorderColor: pointColors, pointRadius: 5,
-                        pointHoverRadius: 7, borderWidth: 3,
-                    }, {
-                        label: `เป้าหมาย (${dailyTarget} คัน)`,
-                        data: Array(dailyData.length).fill(dailyTarget),
-                        borderColor: '#f59e0b', borderDash: [5, 5], fill: false,
-                        pointRadius: 0, borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#e5e7eb', drawBorder: false }, ticks: { font: { family: "'Kanit', sans-serif" } } },
-                        x: { 
-                            grid: { display: false }, 
-                            ticks: { 
-                                font: { family: "'Kanit', sans-serif" },
-                                color: function(context) {
-                                    if (dailyData[context.index] && dailyData[context.index].dayOfWeek === 0) { // 0 is Sunday
-                                        return '#ef4444'; // Red for Sundays
-                                    }
-                                    return '#6b7280'; // Default color for other days
-                                }
-                            } 
-                        }
-                    },
-                    plugins: {
-                        legend: { 
-                            position: 'top', 
-                            labels: { 
-                                font: { family: "'Kanit', sans-serif", size: 14 }, 
-                                usePointStyle: true,
-                                generateLabels: function(chart) {
-                                    const originalLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                                    originalLabels.forEach(label => {
-                                        if (label.text.includes('ยอดรถ OK จริง')) {
-                                            label.fillStyle = '#10b981';
-                                            label.strokeStyle = '#10b981';
-                                        }
-                                    });
-                                    return originalLabels;
-                                }
-                            } 
-                        },
-                        tooltip: {
-                            backgroundColor: '#1f2937', titleFont: { family: "'Kanit', sans-serif", weight: 'bold', size: 14 },
-                            bodyFont: { family: "'Kanit', sans-serif", size: 12 }, padding: 10, cornerRadius: 8, displayColors: true,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed.y !== null) { label += context.parsed.y + ' คัน'; }
-                                    return label;
-                                }
-                            }
-                        },
-                        datalabels: {
-                            align: 'top',
-                            color: '#374151',
-                            font: { weight: 'bold', size: 11, family: "'Kanit', sans-serif" },
-                            formatter: (value) => value > 0 ? value : ''
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-        }
-
-        // --- Helper & Utility functions (Restored) ---
-        function createLoadingModal(text) {
-            const modal = document.createElement('div');
-            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1001;`;
-            modal.innerHTML = `<div style="background: white; padding: 20px 30px; border-radius: 10px; display: flex; align-items: center; gap: 15px;"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><span class="text-lg">${text}</span></div>`;
-            return modal;
-        }
-
-        function createSummaryModal(summaryText) {
-            const modalId = 'summaryModal';
-            const existingModal = document.getElementById(modalId);
-            if (existingModal) existingModal.remove();
-
-            const summaryModal = document.createElement('div');
-            summaryModal.id = modalId;
-            summaryModal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);`;
-            summaryModal.innerHTML = `<div style="background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <h3 style="margin: 0; color: #1f2937; font-size: 24px; font-weight: bold;">สรุปหมายเหตุประจำเดือน</h3>
-                </div>
-                <textarea id="monthlySummaryArea" readonly style="flex-grow: 1; width: 100%; padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-family: 'Kanit', sans-serif; font-size: 13px; line-height: 1.5; background: #f9fafb; resize: none;">${summaryText}</textarea>
-                <div style="display: flex; gap: 15px; margin-top: 20px;">
-                    <button onclick="copyMonthlySummary()" style="flex-grow: 1; background: #10b981; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">📋 คัดลอกข้อความ</button>
-                    <button onclick="document.getElementById('${modalId}').remove()" style="flex-shrink: 0; background: #6b7280; color: white; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Kanit', sans-serif; transition: all 0.2s;">ปิด</button>
-                </div>
-            </div>`;
-            document.body.appendChild(summaryModal);
-        }
-        
-        function copyMonthlySummary() {
-            const textArea = document.getElementById('monthlySummaryArea');
-            textArea.select();
-            document.execCommand('copy');
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '✅ คัดลอกแล้ว!';
-            button.style.background = '#059669';
-            setTimeout(() => { button.innerHTML = originalText; button.style.background = '#10b981'; }, 2000);
-        }
-        
-        async function summarizeMonthlyNotes() {
-            const selectedDate = document.getElementById('reportDate').value;
-            if (!selectedDate) {
-                alert("กรุณาเลือกวันที่ก่อนทำการสรุป");
-                return;
-            }
-
-            const loadingModal = createLoadingModal("กำลังรวบรวมข้อมูลหมายเหตุ...");
-            document.body.appendChild(loadingModal);
-
-            const dateObj = new Date(selectedDate + 'T00:00:00');
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            let allNotes = [];
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dateKey = dateStr.replace(/-/g, '_');
-                
-                // Correctly handle legacy data for notes
-                const snapshot = await database.ref('reports/' + dateKey).once('value');
-                const allData = snapshot.val() || {};
-                let note = null;
-
-                if (allData[currentSite] && allData[currentSite].dailyNotes) {
-                    note = allData[currentSite].dailyNotes;
-                } else if (currentSite === '2ps' && allData.dailyNotes) {
-                     note = allData.dailyNotes;
-                }
-
-                if (note && note.trim() !== '') {
-                    const formattedDay = new Date(year, month, day).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-                    allNotes.push(`- วันที่ ${formattedDay}:\n  ${note.trim()}`);
-                }
-            }
-            
-            loadingModal.remove();
-
-            const monthName = dateObj.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-            const summaryText = allNotes.length > 0 ? allNotes.join('\n\n') : 'ไม่มีหมายเหตุสำหรับเดือนนี้';
-            const fullSummaryText = `📝 สรุปหมายเหตุประจำเดือน ${monthName}\n\n${summaryText}`;
-            
-            createSummaryModal(fullSummaryText);
-        }
-
-        // --- Event Listeners and Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().split('T')[0];
-            switchTab('2ps', 'report'); // Initialize with default tab
-        });
     </script>
 </body>
 </html>
+
